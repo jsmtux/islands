@@ -96,6 +96,8 @@ function Terrain(size, island_function)
 {
     this.size_ = size;
     this.island_function_ = island_function;
+    this.heights_;
+    this.coast_line_;
 
     //generate shape according to function
     this.tile_types_ = [];
@@ -168,7 +170,6 @@ Terrain.prototype.getNeighbors = function(x, y)
         {
             try
             {
-                var ind = parseInt(x)+i;
             	ret[i+1][j+1] = this.tile_types_[x+i][y+j];
                 if (ret[i+1][j+1] === undefined)
                 {
@@ -191,6 +192,7 @@ Terrain.prototype.setLake = function()
 
 Terrain.prototype.setCoast = function()
 {
+    this.coast_line_ = [];
     for (var i in this.tile_types_)
     {
         for (var j in this.tile_types_[i])
@@ -201,13 +203,53 @@ Terrain.prototype.setCoast = function()
                 if (matrixContains(neighbors, Terrain.tileType.SEA))
                 {
                     this.tile_types_[i][j] = Terrain.tileType.SAND;
+                    this.coast_line_.push(new THREE.Vector2(i,j));
                 }
             }
         }
     }
 }
 
-function createMesh(tile_types)
+Terrain.prototype.setHeight = function()
+{
+    this.heights_ = [];
+    for (var i in this.tile_types_)
+    {
+        this.heights_[i] = [];
+        for (var j in this.tile_types_[i])
+        {
+            i = parseInt(i);
+            j = parseInt(j);
+            if (this.tile_types_[i][j] === Terrain.tileType.SEA)
+            {
+                this.heights_[i][j] = 0;
+            }
+            else
+            {
+                var cur_pos = new THREE.Vector2(i,j);
+                var min_dist = undefined;
+                
+                for (var ind in this.coast_line_)
+                {
+                    var dist = this.coast_line_[ind].distanceTo(cur_pos);
+                    if (min_dist === undefined || dist < min_dist)
+                    {
+                        min_dist = dist;
+                    }
+                }
+                
+                if (min_dist === undefined)
+                {
+                    min_dist = 0;
+                }
+                console.log(min_dist);
+                this.heights_[i][j] = min_dist * min_dist * 0.2;
+            }
+        }
+    }
+}
+
+function createMesh(tile_types, heights)
 {
     var texloader = new THREE.TextureLoader();
     var water = texloader.load('images/water.png');
@@ -248,18 +290,23 @@ function createMesh(tile_types)
         geometry.faces[j + 1].materialIndex = index;
         geometry.faceVertexUvs[0][j+1] = [uvs[1], uvs[2], uvs[3]];  
         
-        var height = -tile_types[y][x]*10;
-        geometry.vertices[geometry.faces[j].a].z = height;
-        geometry.vertices[geometry.faces[j].b].z = height;
-        geometry.vertices[geometry.faces[j].c].z = height;
-        geometry.vertices[geometry.faces[j+1].a].z = height;
-        geometry.vertices[geometry.faces[j+1].b].z = height;
-        geometry.vertices[geometry.faces[j+1].c].z = height;
+        if (heights !== undefined)
+        {
+            var height = heights[y][x];
+            geometry.vertices[geometry.faces[j].a].z = height;
+            geometry.vertices[geometry.faces[j].b].z = height;
+            geometry.vertices[geometry.faces[j].c].z = height;
+            geometry.vertices[geometry.faces[j+1].a].z = height;
+            geometry.vertices[geometry.faces[j+1].b].z = height;
+            geometry.vertices[geometry.faces[j+1].c].z = height;
+        }
     }
 
     // mesh
     return new THREE.Mesh(geometry, new THREE.MeshFaceMaterial(materials));
 }
+
+var mesh;
 
 function init() {
     var random = new RandGenerator();
@@ -270,7 +317,7 @@ function init() {
     camera.position.z = 600;
     scene.add(camera);
 
-    var terrainSize = new THREE.Vector2(50, 50);
+    var terrainSize = new THREE.Vector2(100, 100);
     
     var terrainFunction = new RoundFunction(0.5);
     var terrainFunction2 = new RadialFunction(1.07, random);
@@ -279,10 +326,11 @@ function init() {
     var terrain = new Terrain(terrainSize, terrainFunction3);
     terrain.setLake();
     terrain.setCoast();
+    terrain.setHeight();
     terrain.getProperties();
-    var mesh = createMesh(terrain.tile_types_);
+    mesh = createMesh(terrain.tile_types_, terrain.heights_);
     
-    mesh.rotation.x = -Math.PI / 3;
+    mesh.rotation.x = -Math.PI / 2.5;
     
     scene.add(mesh);
 
@@ -302,4 +350,5 @@ function animate() {
 
 function render() {
     renderer.render(scene, camera);
+    mesh.rotation.z += 0.005;
 }
