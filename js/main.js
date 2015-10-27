@@ -2,20 +2,21 @@ var camera, scene, renderer, geometry, material, mesh;
 
 function matrixContains(mat, number)
 {
+    var ret = [];
     for (var i in mat)
     {
         for (var j in mat[i])
         {
             if (mat[i][j] === number)
             {
-                return true;
+                ret.push(new THREE.Vector2(i,j));
             }
         }
     }
-    return false;
+    return ret;
 }
 
-function flood_fill(i, j, map_data, base, replacement)
+function flood_fill(map_data, i, j, base, replacement)
 {
     var ret = 0;
     var open_nodes = [new THREE.Vector2(i,j)];
@@ -37,6 +38,64 @@ function flood_fill(i, j, map_data, base, replacement)
             }
         }
     }
+    return ret;
+}
+
+function getNeighbors(array, x, y)
+{
+    x = parseInt(x);
+    y = parseInt(y);
+    var ret = [];
+    for (var i = -1; i < 2; i++)
+    {
+        ret[i+1] = [];
+        for(var j = -1; j < 2; j++)
+        {
+            try
+            {
+            	ret[i+1][j+1] = array[x+i][y+j];
+                if (ret[i+1][j+1] === undefined)
+                {
+                    ret[i+1][j+1] = -1;
+                }
+            }
+            catch(err)
+            {
+                ret[i+1][j+1] = -1;
+            }
+        }
+    }
+    return ret;
+}
+
+function setBorder(array, out_type, in_type, border_type, fill_type)
+{
+    var ret = [];
+    for (var i in array)
+    {
+        for (var j in array[i])
+        {
+            if (array[i][j] === in_type)
+            {
+                var neighbors = getNeighbors(array, i, j);
+                if (matrixContains(neighbors, out_type).length !== 0)
+                {
+                    array[i][j] = border_type;
+                    ret.push(new THREE.Vector2(i,j));
+                }
+                if (fill_type !== undefined)
+                {
+                    var pos = matrixContains(neighbors, fill_type);
+                    if (pos.length !== 0)
+                    {
+                        flood_fill(array, parseInt(i) + parseInt(pos[0].x) - 1,
+                            parseInt(j) + parseInt(pos[0].y) - 1,
+                            fill_type, border_type);
+                    }
+                }
+            }
+        }
+    }   
     return ret;
 }
 
@@ -87,9 +146,14 @@ RadialFunction.prototype.isGround = function(pos)
     return (length < r1 || (length > r1*this.island_factor_ && length < r2));
 }
 
-function NoiseFunction(skip)
+function NoiseFunction(skip, seed)
 {
-    noise.seed(Math.random());
+    if (seed === undefined)
+    {
+        seed = Math.random();
+        console.log("Seed is: " + seed);
+    }
+    noise.seed(seed);
     this.skip_ = skip;
 }
 
@@ -154,7 +218,7 @@ Terrain.prototype.getProperties = function()
         {
             if (res[i][j] === 1)
             {
-    		stats[cur_island - 2] = flood_fill(parseInt(i), parseInt(j), res, 1, cur_island++);
+    		stats[cur_island - 2] = flood_fill(res, parseInt(i), parseInt(j), 1, cur_island++);
             }
         }
     }
@@ -165,56 +229,15 @@ Terrain.prototype.getProperties = function()
     }
 }
 
-Terrain.prototype.getNeighbors = function(x, y)
-{
-    x = parseInt(x);
-    y = parseInt(y);
-    var ret = [];
-    for (var i = -1; i < 2; i++)
-    {
-        ret[i+1] = [];
-        for(var j = -1; j < 2; j++)
-        {
-            try
-            {
-            	ret[i+1][j+1] = this.tile_types_[x+i][y+j];
-                if (ret[i+1][j+1] === undefined)
-                {
-                    ret[i+1][j+1] = -1;
-                }
-            }
-            catch(err)
-            {
-                ret[i+1][j+1] = -1;
-            }
-        }
-    }
-    return ret;
-}
-
 Terrain.prototype.setLake = function()
 {
-    flood_fill(0,0, this.tile_types_, Terrain.tileType.WATER, Terrain.tileType.SEA);
+    flood_fill(this.tile_types_, 0, 0, Terrain.tileType.WATER, Terrain.tileType.SEA);
 }
 
 Terrain.prototype.setCoast = function()
 {
-    this.coast_line_ = [];
-    for (var i in this.tile_types_)
-    {
-        for (var j in this.tile_types_[i])
-        {
-            if (this.tile_types_[i][j] === Terrain.tileType.LAND)
-            {
-                var neighbors = this.getNeighbors(i,j);
-                if (matrixContains(neighbors, Terrain.tileType.SEA))
-                {
-                    this.tile_types_[i][j] = Terrain.tileType.SAND;
-                    this.coast_line_.push(new THREE.Vector2(i,j));
-                }
-            }
-        }
-    }
+    this.coast_line_ =
+            setBorder(this.tile_types_, Terrain.tileType.SEA, Terrain.tileType.LAND, Terrain.tileType.SAND);
 }
 
 Terrain.prototype.setHeight = function()
@@ -231,28 +254,23 @@ Terrain.prototype.setHeight = function()
             {
                 this.heights_[i][j] = 0;
             }
+            else if (this.tile_types_[i][j] === Terrain.tileType.WATER)
+            {
+                this.heights_[i][j] = -2;
+            }
             else
             {
-                var cur_pos = new THREE.Vector2(i,j);
-                var min_dist = undefined;
-                
-                for (var ind in this.coast_line_)
-                {
-                    var dist = this.coast_line_[ind].distanceTo(cur_pos);
-                    if (min_dist === undefined || dist < min_dist)
-                    {
-                        min_dist = dist;
-                    }
-                }
-                
-                if (min_dist === undefined)
-                {
-                    min_dist = 0;
-                }
-                this.heights_[i][j] = min_dist * min_dist * 0.2;
+                this.heights_[i][j] = -1;
             }
         }
     }
+    var max_height = 1;
+    var last_changed = [];
+    do {
+        last_changed = setBorder(this.heights_, max_height-1, -1, max_height, -2);
+        max_height++;
+    }
+    while (last_changed.length !== 0);
 }
 
 function createMesh(tile_types, heights)
@@ -298,7 +316,7 @@ function createMesh(tile_types, heights)
         
         if (heights !== undefined)
         {
-            var height = heights[y][x];
+            var height = heights[y][x]*3;
             geometry.vertices[geometry.faces[j].a].z = height;
             geometry.vertices[geometry.faces[j].b].z = height;
             geometry.vertices[geometry.faces[j].c].z = height;
@@ -327,6 +345,7 @@ function init() {
     
     var terrainFunction = new RoundFunction(0.5);
     var terrainFunction2 = new RadialFunction(1.07, random);
+    //lake island:, 0.702325296588242
     var terrainFunction3 = new NoiseFunction(1);
 
     var terrain = new Terrain(terrainSize, terrainFunction3);
