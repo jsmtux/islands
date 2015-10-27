@@ -18,16 +18,23 @@ function matrixContains(mat, number)
 function flood_fill(i, j, map_data, base, replacement)
 {
     var ret = 0;
-    if(map_data[i] !== undefined && map_data[i][j] !== undefined)
+    var open_nodes = [new THREE.Vector2(i,j)];
+    while (open_nodes.length > 0)
     {
-        if (map_data[i][j] === base)
+        var cur = open_nodes.pop();
+        var i = cur.x;
+        var j = cur.y;
+        if(map_data[i] !== undefined && map_data[i][j] !== undefined)
         {
-            ret ++;
-            map_data[i][j] = replacement;
-            ret += flood_fill(i,j+1, map_data, base, replacement);
-            ret += flood_fill(i,j-1, map_data, base, replacement);
-            ret += flood_fill(i+1,j, map_data, base, replacement);
-            ret += flood_fill(i-1,j, map_data, base, replacement);
+            if (map_data[i][j] === base)
+            {
+                ret ++;
+                map_data[i][j] = replacement;
+                open_nodes.push(new THREE.Vector2(i,j+1));
+                open_nodes.push(new THREE.Vector2(i,j-1));
+                open_nodes.push(new THREE.Vector2(i+1,j));
+                open_nodes.push(new THREE.Vector2(i-1,j));
+            }
         }
     }
     return ret;
@@ -242,7 +249,6 @@ Terrain.prototype.setHeight = function()
                 {
                     min_dist = 0;
                 }
-                console.log(min_dist);
                 this.heights_[i][j] = min_dist * min_dist * 0.2;
             }
         }
