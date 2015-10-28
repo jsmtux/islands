@@ -273,29 +273,49 @@ Terrain.prototype.setHeight = function()
     while (last_changed.length !== 0);
 }
 
+function MaterialManager(texloader)
+{
+    this.texloader_ = texloader;
+    this.materials_ = [];
+    this.material_ind_ = {};
+}
+
+MaterialManager.prototype.loadMaterial = function(path)
+{
+    var ret = this.material_ind_[path];
+    
+    if (ret === undefined)
+    {
+        this.materials_.push(new THREE.MeshBasicMaterial({
+            map: this.texloader_.load(path)}));
+        ret = this.materials_.length -1;
+        this.material_ind_[path] = ret;
+    }
+    
+    return ret;
+}
+
 function createMesh(tile_types, heights)
 {
     var texloader = new THREE.TextureLoader();
-    var water = texloader.load('images/water.png');
-    var ground = texloader.load('images/ground.png');
-    var sand = texloader.load('images/sand.png');
+    var matloader = new MaterialManager(texloader);
     // geometry
-    var geometry = new THREE.PlaneGeometry(500, 500, tile_types.length, tile_types[0].length);
-
-    // materials
-    var materials = [];
-    materials.push(new THREE.MeshBasicMaterial({
-        map: water}));
-    materials.push(new THREE.MeshBasicMaterial({
-        map: ground}));
-    materials.push(new THREE.MeshBasicMaterial({
-        map: sand}));
+    var geometry = new THREE.PlaneGeometry(500, 500, tile_types[0].length * 2, tile_types.length * 2);
 
     var material_ind = {};
-    material_ind[Terrain.tileType.LAND] = 1;
-    material_ind[Terrain.tileType.SAND] = 2;
-    material_ind[Terrain.tileType.SEA] = 0;
-    material_ind[Terrain.tileType.WATER] = 0;
+    material_ind[Terrain.tileType.WATER] = matloader.loadMaterial('images/water.png');
+    material_ind[Terrain.tileType.LAND] = matloader.loadMaterial('images/ground.png');
+    material_ind[Terrain.tileType.SAND] = matloader.loadMaterial('images/sand.png');
+    material_ind[Terrain.tileType.SEA] = matloader.loadMaterial('images/water.png');
+
+    var material_border = [];
+    material_border[Terrain.tileType.SAND] = [];
+    material_border[Terrain.tileType.SAND][Terrain.tileType.SEA] = {
+        E:matloader.loadMaterial('images/sand_water_e.png'),
+        W:matloader.loadMaterial('images/sand_water_w.png'),
+        N:matloader.loadMaterial('images/sand_water_n.png'),
+        S:matloader.loadMaterial('images/sand_water_s.png')
+    };
 
     var uvs = [new THREE.Vector2(0,0),
         new THREE.Vector2(1,0),
@@ -303,31 +323,116 @@ function createMesh(tile_types, heights)
         new THREE.Vector2(0,1)];
     
     // Add materialIndex to face
-    var l = geometry.faces.length / 2;
-    for (var i = 0; i < l; i++) {
-        var j = 2 * i;
-        var x = Math.floor(i / tile_types.length);
-        var y = i % tile_types.length;
-        var index = material_ind[tile_types[y][x]];
-        geometry.faces[j].materialIndex = index;
-        geometry.faceVertexUvs[0][j] = [uvs[0], uvs[1], uvs[3]];
-        geometry.faces[j + 1].materialIndex = index;
-        geometry.faceVertexUvs[0][j+1] = [uvs[1], uvs[2], uvs[3]];  
-        
-        if (heights !== undefined)
+    for (var i = 0; i < tile_types.length * 2; i++)
+    {
+        for(var j = 0; j < tile_types[0].length * 2; j++)
         {
-            var height = heights[y][x]*3;
-            geometry.vertices[geometry.faces[j].a].z = height;
-            geometry.vertices[geometry.faces[j].b].z = height;
-            geometry.vertices[geometry.faces[j].c].z = height;
-            geometry.vertices[geometry.faces[j+1].a].z = height;
-            geometry.vertices[geometry.faces[j+1].b].z = height;
-            geometry.vertices[geometry.faces[j+1].c].z = height;
+            var face_ind = (i * tile_types[0].length * 2 + j) * 2;
+            var x = Math.floor(i/2);
+            var y = Math.floor(j/2);
+            
+            var index = 0;
+            if (i%2 !== 0 && j%2 !== 0)
+            {
+                if (tile_types[x+1])
+                {
+                    var nw = tile_types[x][y];
+                    var ne = tile_types[x+1][y];
+                    var sw = tile_types[x][y+1];
+                    var se = tile_types[x+1][y+1];
+                    
+                    if (nw === ne && sw === se && nw === sw && ne === se)
+                    {
+                        index = material_ind[nw];
+                    }
+                    else if (nw === ne && sw === se)
+                    {
+                        if (material_border[nw] && material_border[nw][sw])
+                        {
+                            index = material_border[nw][sw].N;
+                        }
+                        else if (material_border[sw] && material_border[sw][nw])
+                        {
+                            index = material_border[sw][nw].S;
+                        } 
+                    }
+                    else if (nw === sw && ne === se)
+                    {
+                        if (material_border[nw] && material_border[nw][se])
+                        {
+                            index = material_border[nw][se].E;
+                        }
+                        else if (material_border[se] && material_border[se][nw])
+                        {
+                            index = material_border[se][nw].W;
+                        }                       
+                    }
+                }
+            }
+            else if (i%2 !== 0)
+            {
+                var prev_mat = tile_types[x][y];
+                if(tile_types[x+1] !== undefined)
+                {
+                    var next_mat = tile_types[x+1][y];
+                    if (prev_mat === next_mat)
+                    {
+                        index = material_ind[prev_mat];
+                    }
+                    else if (material_border[prev_mat] && material_border[prev_mat][next_mat])
+                    {
+                        index = material_border[prev_mat][next_mat].E;
+                    }
+                    else if (material_border[next_mat] && material_border[next_mat][prev_mat])
+                    {
+                        index = material_border[next_mat][prev_mat].W;
+                    }
+                }
+            }
+            else if (j%2 !== 0)
+            {
+                var prev_mat = tile_types[x][y];
+                var next_mat = tile_types[x][y+1];                
+                if (prev_mat === next_mat)
+                {
+                    index = material_ind[prev_mat];
+                }
+                else if (material_border[prev_mat] && material_border[prev_mat][next_mat])
+                {
+                    index = material_border[prev_mat][next_mat].N;
+                }
+                else if (material_border[next_mat] && material_border[next_mat][prev_mat])
+                {
+                    index = material_border[next_mat][prev_mat].S;
+                }
+            }
+            else
+            {
+                index = material_ind[tile_types[x][y]];
+            }
+            geometry.faces[face_ind].materialIndex = index;
+            geometry.faceVertexUvs[0][face_ind] = [uvs[0], uvs[1], uvs[3]];
+            geometry.faces[face_ind + 1].materialIndex = index;
+            geometry.faceVertexUvs[0][face_ind+1] = [uvs[1], uvs[2], uvs[3]];
+            
+            if (i%2 === 0 && j%2 === 0)
+            {
+                if (heights !== undefined)
+                {
+                    var height = heights[x][y]*3;
+                    geometry.vertices[geometry.faces[face_ind].a].z = height;
+                    geometry.vertices[geometry.faces[face_ind].b].z = height;
+                    geometry.vertices[geometry.faces[face_ind].c].z = height;
+                    geometry.vertices[geometry.faces[face_ind+1].a].z = height;
+                    geometry.vertices[geometry.faces[face_ind+1].b].z = height;
+                    geometry.vertices[geometry.faces[face_ind+1].c].z = height;
+                }
+            }
         }
     }
 
     // mesh
-    return new THREE.Mesh(geometry, new THREE.MeshFaceMaterial(materials));
+    return new THREE.Mesh(geometry, new THREE.MeshFaceMaterial(matloader.materials_));
 }
 
 var mesh;
@@ -338,15 +443,15 @@ function init() {
     scene = new THREE.Scene();
 
     camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 10000);
-    camera.position.z = 600;
+    camera.position.z = 400;
     scene.add(camera);
 
-    var terrainSize = new THREE.Vector2(100, 100);
+    var terrainSize = new THREE.Vector2(10, 10);
     
     var terrainFunction = new RoundFunction(0.5);
     var terrainFunction2 = new RadialFunction(1.07, random);
     //lake island:, 0.702325296588242
-    var terrainFunction3 = new NoiseFunction(1);
+    var terrainFunction3 = new NoiseFunction(1, 0.9297650449443609);
 
     var terrain = new Terrain(terrainSize, terrainFunction3);
     terrain.setLake();
