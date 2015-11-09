@@ -308,14 +308,71 @@ function createMesh(tile_types, heights)
     material_ind[Terrain.tileType.SAND] = matloader.loadMaterial('images/sand.png');
     material_ind[Terrain.tileType.SEA] = matloader.loadMaterial('images/water.png');
 
+    var border_types = {
+        SW:[1,0,0,0],
+        SE:[0,1,0,0],
+        NW:[0,0,1,0],
+        NE:[0,0,0,1],
+        EN:[0,1,1,1],
+        WN:[1,0,1,1],
+        ES:[1,1,0,1],
+        WS:[1,1,1,0],
+        S:[1,1,0,0],
+        N:[0,0,1,1],
+        W:[1,0,1,0],
+        E:[0,1,0,1]
+    };
+    
+    var opposite_borders = {
+        SW:"EN",
+        SE:"WN",
+        NW:"ES",
+        NE:"WS",
+        EN:"SW",
+        WN:"SE",
+        ES:"NW",
+        WS:"NE",
+        S:"N",
+        N:"S",
+        W:"E",
+        E:"W"
+    }
+
+    var sand_water_set = {
+        SW:matloader.loadMaterial('images/sand_water_sw.png'),
+        SE:matloader.loadMaterial('images/sand_water_se.png'),
+        NW:matloader.loadMaterial('images/sand_water_nw.png'),
+        NE:matloader.loadMaterial('images/sand_water_ne.png'),
+        EN:matloader.loadMaterial('images/sand_water_en.png'),
+        WN:matloader.loadMaterial('images/sand_water_wn.png'),
+        ES:matloader.loadMaterial('images/sand_water_es.png'),
+        WS:matloader.loadMaterial('images/sand_water_ws.png'),
+        S:matloader.loadMaterial('images/sand_water_s.png'),
+        N:matloader.loadMaterial('images/sand_water_n.png'),
+        W:matloader.loadMaterial('images/sand_water_w.png'),
+        E:matloader.loadMaterial('images/sand_water_e.png')
+    };
+
+    var ground_sand_set = {
+        E:matloader.loadMaterial('images/ground_sand_e.png'),
+        W:matloader.loadMaterial('images/ground_sand_w.png'),
+        N:matloader.loadMaterial('images/ground_sand_n.png'),
+        S:matloader.loadMaterial('images/ground_sand_s.png'),
+        NE:matloader.loadMaterial('images/ground_sand_en.png'),
+        NW:matloader.loadMaterial('images/ground_sand_wn.png'),
+        SE:matloader.loadMaterial('images/ground_sand_es.png'),
+        SW:matloader.loadMaterial('images/ground_sand_ws.png'),
+        EN:matloader.loadMaterial('images/ground_sand_ne.png'),
+        WN:matloader.loadMaterial('images/ground_sand_nw.png'),
+        ES:matloader.loadMaterial('images/ground_sand_se.png'),
+        WS:matloader.loadMaterial('images/ground_sand_sw.png')
+    };
+
     var material_border = [];
     material_border[Terrain.tileType.SAND] = [];
-    material_border[Terrain.tileType.SAND][Terrain.tileType.SEA] = {
-        E:matloader.loadMaterial('images/sand_water_e.png'),
-        W:matloader.loadMaterial('images/sand_water_w.png'),
-        N:matloader.loadMaterial('images/sand_water_n.png'),
-        S:matloader.loadMaterial('images/sand_water_s.png')
-    };
+    material_border[Terrain.tileType.SAND][Terrain.tileType.SEA] = sand_water_set;
+    material_border[Terrain.tileType.LAND] = [];
+    material_border[Terrain.tileType.LAND][Terrain.tileType.SAND] = ground_sand_set;
 
     var uvs = [new THREE.Vector2(0,0),
         new THREE.Vector2(1,0),
@@ -331,85 +388,111 @@ function createMesh(tile_types, heights)
             var x = Math.floor(i/2);
             var y = Math.floor(j/2);
             
-            var index = 0;
-            if (i%2 !== 0 && j%2 !== 0)
+            var match_types = [];
+            
+            if ((i%2 !== 0 && j%2 !== 0) && (tile_types[x+1] !== undefined))
             {
-                if (tile_types[x+1])
-                {
-                    var nw = tile_types[x][y];
-                    var ne = tile_types[x+1][y];
-                    var sw = tile_types[x][y+1];
-                    var se = tile_types[x+1][y+1];
-                    
-                    if (nw === ne && sw === se && nw === sw && ne === se)
-                    {
-                        index = material_ind[nw];
-                    }
-                    else if (nw === ne && sw === se)
-                    {
-                        if (material_border[nw] && material_border[nw][sw])
-                        {
-                            index = material_border[nw][sw].N;
-                        }
-                        else if (material_border[sw] && material_border[sw][nw])
-                        {
-                            index = material_border[sw][nw].S;
-                        } 
-                    }
-                    else if (nw === sw && ne === se)
-                    {
-                        if (material_border[nw] && material_border[nw][se])
-                        {
-                            index = material_border[nw][se].E;
-                        }
-                        else if (material_border[se] && material_border[se][nw])
-                        {
-                            index = material_border[se][nw].W;
-                        }                       
-                    }
-                }
+                match_types.push(tile_types[x][y]);
+                match_types.push(tile_types[x+1][y]);
+                match_types.push(tile_types[x][y+1]);
+                match_types.push(tile_types[x+1][y+1]);
             }
-            else if (i%2 !== 0)
+            else if ((i%2 !== 0) && (tile_types[x+1] !== undefined))
             {
-                var prev_mat = tile_types[x][y];
-                if(tile_types[x+1] !== undefined)
-                {
-                    var next_mat = tile_types[x+1][y];
-                    if (prev_mat === next_mat)
-                    {
-                        index = material_ind[prev_mat];
-                    }
-                    else if (material_border[prev_mat] && material_border[prev_mat][next_mat])
-                    {
-                        index = material_border[prev_mat][next_mat].E;
-                    }
-                    else if (material_border[next_mat] && material_border[next_mat][prev_mat])
-                    {
-                        index = material_border[next_mat][prev_mat].W;
-                    }
-                }
+                match_types.push(tile_types[x][y]);
+                match_types.push(tile_types[x+1][y]);
+                match_types.push(tile_types[x][y]);
+                match_types.push(tile_types[x+1][y]);
             }
             else if (j%2 !== 0)
             {
-                var prev_mat = tile_types[x][y];
-                var next_mat = tile_types[x][y+1];                
-                if (prev_mat === next_mat)
+                match_types.push(tile_types[x][y]);
+                match_types.push(tile_types[x][y]);
+                match_types.push(tile_types[x][y+1]);
+                match_types.push(tile_types[x][y+1]);
+            }
+            else
+            {
+                match_types.push(tile_types[x][y]);
+                match_types.push(tile_types[x][y]);
+                match_types.push(tile_types[x][y]);
+                match_types.push(tile_types[x][y]);
+            }
+                        
+            var ground_types = [];
+            
+            for(var ind in match_types)
+            {
+                var type = ground_types.indexOf(match_types[ind]);
+                if (type === -1 && match_types[ind] !== undefined)
                 {
-                    index = material_ind[prev_mat];
+                    ground_types.push(match_types[ind]);
                 }
-                else if (material_border[prev_mat] && material_border[prev_mat][next_mat])
+            }
+            
+            for (var ind in match_types)
+            {
+                if (match_types[ind] === ground_types[0] || match_types[ind] === undefined)
                 {
-                    index = material_border[prev_mat][next_mat].N;
+                    match_types[ind] = 0;
                 }
-                else if (material_border[next_mat] && material_border[next_mat][prev_mat])
+                else
                 {
-                    index = material_border[next_mat][prev_mat].S;
+                    match_types[ind] = 1;
+                }
+            }
+            
+            var border_type;
+            for (var a in border_types)
+            {
+                var equals = true;
+                for(var b in border_types[a])
+                {
+                    if (border_types[a][b] !== match_types[b])
+                    {
+                        equals = false;
+                        break;
+                    }
+                }
+                if (equals)
+                {
+                    border_type = a;
+                    break;
+                }
+            } 
+            
+            var index = 0;
+            
+            if (ground_types.length === 1)
+            {
+                index = material_ind[ground_types[0]];
+            }
+            else if (ground_types.length === 2)
+            { 
+                var mat_a = ground_types[0];
+                var mat_b = ground_types[1];
+                if (material_border[mat_a] !== undefined && material_border[mat_a][mat_b] !== undefined)
+                {
+                    var tmp = material_border[mat_a][mat_b][border_type];
+                    if (tmp !== undefined)
+                    {
+                        index = tmp;
+                    }
+                }
+                else if (material_border[mat_b] !== undefined && material_border[mat_b][mat_a] !== undefined)
+                {
+                    var tmp = material_border[mat_b][mat_a][opposite_borders[border_type]];
+                    if (tmp !== undefined)
+                    {
+                        index = tmp;
+                    }
                 }
             }
             else
             {
-                index = material_ind[tile_types[x][y]];
+                console.log("unhandled case for " + ground_types.length + "different ground types");
             }
+            
             geometry.faces[face_ind].materialIndex = index;
             geometry.faceVertexUvs[0][face_ind] = [uvs[0], uvs[1], uvs[3]];
             geometry.faces[face_ind + 1].materialIndex = index;
@@ -419,7 +502,7 @@ function createMesh(tile_types, heights)
             {
                 if (heights !== undefined)
                 {
-                    var height = heights[x][y]*3;
+                    var height = heights[x][y]*1.5;
                     geometry.vertices[geometry.faces[face_ind].a].z = height;
                     geometry.vertices[geometry.faces[face_ind].b].z = height;
                     geometry.vertices[geometry.faces[face_ind].c].z = height;
@@ -446,12 +529,12 @@ function init() {
     camera.position.z = 400;
     scene.add(camera);
 
-    var terrainSize = new THREE.Vector2(10, 10);
+    var terrainSize = new THREE.Vector2(250, 250);
     
     var terrainFunction = new RoundFunction(0.5);
     var terrainFunction2 = new RadialFunction(1.07, random);
     //lake island:, 0.702325296588242
-    var terrainFunction3 = new NoiseFunction(1, 0.9297650449443609);
+    var terrainFunction3 = new NoiseFunction(1, 0.7875010168645531);
 
     var terrain = new Terrain(terrainSize, terrainFunction3);
     terrain.setLake();
