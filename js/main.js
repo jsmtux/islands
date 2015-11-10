@@ -243,10 +243,10 @@ Terrain.prototype.setCoast = function()
 Terrain.prototype.setHeight = function()
 {
     this.heights_ = [];
-    for (var i in this.tile_types_)
+    for (var i = 0; i < this.tile_types_.length; i++)
     {
         this.heights_[i] = [];
-        for (var j in this.tile_types_[i])
+        for (var j = 0; j < this.tile_types_[i].length; j++)
         {
             i = parseInt(i);
             j = parseInt(j);
@@ -421,7 +421,7 @@ function createMesh(tile_types, heights)
                         
             var ground_types = [];
             
-            for(var ind in match_types)
+            for(var ind = 0; ind < match_types.length; ind ++)
             {
                 var type = ground_types.indexOf(match_types[ind]);
                 if (type === -1 && match_types[ind] !== undefined)
@@ -430,7 +430,7 @@ function createMesh(tile_types, heights)
                 }
             }
             
-            for (var ind in match_types)
+            for (var ind = 0; ind < match_types.length; ind ++)
             {
                 if (match_types[ind] === ground_types[0] || match_types[ind] === undefined)
                 {
@@ -443,12 +443,13 @@ function createMesh(tile_types, heights)
             }
             
             var border_type;
-            for (var a in border_types)
+            var keys = Object.keys(border_types);
+            for (var a = 0; a < keys.length; a++)
             {
                 var equals = true;
-                for(var b in border_types[a])
+                for(var b = 0; b < border_types[keys[a]].length; b++)
                 {
-                    if (border_types[a][b] !== match_types[b])
+                    if (border_types[keys[a]][b] !== match_types[b])
                     {
                         equals = false;
                         break;
@@ -456,7 +457,7 @@ function createMesh(tile_types, heights)
                 }
                 if (equals)
                 {
-                    border_type = a;
+                    border_type = keys[a];
                     break;
                 }
             } 
@@ -520,7 +521,13 @@ function createMesh(tile_types, heights)
 
 var mesh;
 
+function diffTime(ini)
+{
+    return (new Date().getTime()) - ini;
+}
+
 function init() {
+    var t_start = new Date().getTime();
     var random = new RandGenerator();
 
     scene = new THREE.Scene();
@@ -534,14 +541,17 @@ function init() {
     var terrainFunction = new RoundFunction(0.5);
     var terrainFunction2 = new RadialFunction(1.07, random);
     //lake island:, 0.702325296588242
-    var terrainFunction3 = new NoiseFunction(1, 0.7875010168645531);
+    var terrainFunction3 = new NoiseFunction(1, 0.702325296588242);
 
+    console.log(diffTime(t_start) + ": noise created");
     var terrain = new Terrain(terrainSize, terrainFunction3);
     terrain.setLake();
     terrain.setCoast();
     terrain.setHeight();
     terrain.getProperties();
+    console.log(diffTime(t_start) + ": info loaded");
     mesh = createMesh(terrain.tile_types_, terrain.heights_);
+    console.log(diffTime(t_start) + ": mesh created");
     
     mesh.rotation.x = -Math.PI / 2.5;
     
