@@ -3,6 +3,7 @@ var camera, scene, renderer, geometry, material, mesh;
 
 function setup()
 {
+    out_div = document.getElementById("out");
     init();
     animate();
 }
@@ -14,17 +15,25 @@ function MaterialManager(texloader)
     this.material_ind_ = {};
     this.vert_shader_ = document.getElementById('vertex_shh').innerHTML;
     this.frag_shader_ = document.getElementById('fragment_shh').innerHTML;
-    this.cover_tex_ = texloader.load('images/cover.png');
+    this.cover_tex_ = texloader.load('images/path.png');
 }
-        
-MaterialManager.prototype.loadMaterial = function(path)
+
+MaterialManager.prototype.loadMaterial = function(path, road)
 {
-    var ret = this.material_ind_[path];
+    var ret;
+    if (this.material_ind_[path])
+    {
+        ret = this.material_ind_[path][road];
+    }
+    else
+    {
+        this.material_ind_[path] = {};
+    }
 
     if (ret === undefined)
     {
         var uniforms = {
-            tOne: { type: "t", value: this.cover_tex_ },
+            tOne: { type: "t", value: this.texloader_.load(road) },
             tSec: { type: "t", value: this.texloader_.load(path)}
         };
         var multitexture_material = new THREE.ShaderMaterial({
@@ -35,24 +44,23 @@ MaterialManager.prototype.loadMaterial = function(path)
 
         this.materials_.push(multitexture_material);
         ret = this.materials_.length -1;
-        this.material_ind_[path] = ret;
+        this.material_ind_[path][road] = ret;
     }
     
     return ret;
 }
 
-function createMesh(tile_types, heights)
+function createMesh(tile_types, heights, paths)
 {
     var texloader = new THREE.TextureLoader();
     var matloader = new MaterialManager(texloader);
-    // geometry
     var geometry = new THREE.PlaneGeometry(500, 500, tile_types[0].length * 2, tile_types.length * 2);
 
     var material_ind = {};
-    material_ind[Terrain.tileType.WATER] = matloader.loadMaterial('images/water.png');
-    material_ind[Terrain.tileType.LAND] = matloader.loadMaterial('images/ground.png');
-    material_ind[Terrain.tileType.SAND] = matloader.loadMaterial('images/sand.png');
-    material_ind[Terrain.tileType.SEA] = matloader.loadMaterial('images/water.png');
+    material_ind[Terrain.tileType.WATER] = 'images/water.png';
+    material_ind[Terrain.tileType.LAND] = 'images/ground.png';
+    material_ind[Terrain.tileType.SAND] = 'images/sand.png';
+    material_ind[Terrain.tileType.SEA] = 'images/water.png';
 
     var border_types = {
         SW:[1,0,0,0],
@@ -82,36 +90,36 @@ function createMesh(tile_types, heights)
         N:"S",
         W:"E",
         E:"W"
-    }
+    };
 
     var sand_water_set = {
-        SW:matloader.loadMaterial('images/sand_water_sw.png'),
-        SE:matloader.loadMaterial('images/sand_water_se.png'),
-        NW:matloader.loadMaterial('images/sand_water_nw.png'),
-        NE:matloader.loadMaterial('images/sand_water_ne.png'),
-        EN:matloader.loadMaterial('images/sand_water_en.png'),
-        WN:matloader.loadMaterial('images/sand_water_wn.png'),
-        ES:matloader.loadMaterial('images/sand_water_es.png'),
-        WS:matloader.loadMaterial('images/sand_water_ws.png'),
-        S:matloader.loadMaterial('images/sand_water_s.png'),
-        N:matloader.loadMaterial('images/sand_water_n.png'),
-        W:matloader.loadMaterial('images/sand_water_w.png'),
-        E:matloader.loadMaterial('images/sand_water_e.png')
+        SW:'images/sand_water_sw.png',
+        SE:'images/sand_water_se.png',
+        NW:'images/sand_water_nw.png',
+        NE:'images/sand_water_ne.png',
+        EN:'images/sand_water_en.png',
+        WN:'images/sand_water_wn.png',
+        ES:'images/sand_water_es.png',
+        WS:'images/sand_water_ws.png',
+        S:'images/sand_water_s.png',
+        N:'images/sand_water_n.png',
+        W:'images/sand_water_w.png',
+        E:'images/sand_water_e.png'
     };
 
     var ground_sand_set = {
-        E:matloader.loadMaterial('images/ground_sand_e.png'),
-        W:matloader.loadMaterial('images/ground_sand_w.png'),
-        N:matloader.loadMaterial('images/ground_sand_n.png'),
-        S:matloader.loadMaterial('images/ground_sand_s.png'),
-        NE:matloader.loadMaterial('images/ground_sand_en.png'),
-        NW:matloader.loadMaterial('images/ground_sand_wn.png'),
-        SE:matloader.loadMaterial('images/ground_sand_es.png'),
-        SW:matloader.loadMaterial('images/ground_sand_ws.png'),
-        EN:matloader.loadMaterial('images/ground_sand_ne.png'),
-        WN:matloader.loadMaterial('images/ground_sand_nw.png'),
-        ES:matloader.loadMaterial('images/ground_sand_se.png'),
-        WS:matloader.loadMaterial('images/ground_sand_sw.png')
+        E:'images/ground_sand_e.png',
+        W:'images/ground_sand_w.png',
+        N:'images/ground_sand_n.png',
+        S:'images/ground_sand_s.png',
+        NE:'images/ground_sand_en.png',
+        NW:'images/ground_sand_wn.png',
+        SE:'images/ground_sand_es.png',
+        SW:'images/ground_sand_ws.png',
+        EN:'images/ground_sand_ne.png',
+        WN:'images/ground_sand_nw.png',
+        ES:'images/ground_sand_se.png',
+        WS:'images/ground_sand_sw.png'
     };
 
     var material_border = [];
@@ -164,7 +172,7 @@ function createMesh(tile_types, heights)
                 match_types.push(tile_types[x][y]);
                 match_types.push(tile_types[x][y]);
             }
-                        
+
             var ground_types = [];
             
             for(var ind = 0; ind < match_types.length; ind ++)
@@ -240,11 +248,18 @@ function createMesh(tile_types, heights)
                 console.log("unhandled case for " + ground_types.length + "different ground types");
             }
             
-            geometry.faces[face_ind].materialIndex = index;
-            geometry.faceVertexUvs[0][face_ind] = [uvs[0], uvs[1], uvs[3]];
-            geometry.faces[face_ind + 1].materialIndex = index;
-            geometry.faceVertexUvs[0][face_ind+1] = [uvs[1], uvs[2], uvs[3]];
+            var path_url = "images/empty.png";
+            if (findInList(paths, new THREE.Vector2(x,y)))
+            {
+                path_url = "images/path.png";
+            }
+            var mat =  matloader.loadMaterial(index,path_url);
             
+            geometry.faces[face_ind].materialIndex = mat;
+            geometry.faceVertexUvs[0][face_ind] = [uvs[0], uvs[1], uvs[3]];
+            geometry.faces[face_ind + 1].materialIndex = mat;
+            geometry.faceVertexUvs[0][face_ind+1] = [uvs[1], uvs[2], uvs[3]];
+
             if (i%2 === 0 && j%2 === 0)
             {
                 if (heights !== undefined)
@@ -258,9 +273,9 @@ function createMesh(tile_types, heights)
                     geometry.vertices[geometry.faces[face_ind+1].c].z = height;
                 }
             }
+
         }
     }
-
     // mesh
     return new THREE.Mesh(geometry, new THREE.MeshFaceMaterial(matloader.materials_));
 }
@@ -282,7 +297,7 @@ function init() {
     camera.position.z = 400;
     scene.add(camera);
 
-    var terrainSize = new THREE.Vector2(25, 25);
+    var terrainSize = new THREE.Vector2(50, 50);
 
     var terrainFunction3 = new NoiseFunction(1);
 
@@ -290,12 +305,24 @@ function init() {
     var terrain = new Terrain(terrainSize, terrainFunction3);
     terrain.setLake();
     terrain.setCoast();
+    terrain.initHeight();
     terrain.setHeight();
     terrain.getProperties();
+
+    var points = terrain.generatePoints();
+    var paths = [];
+    for (var i = 0; i < points.length; i++)
+    {
+        var cur = i;
+        var next = (i + 1) % points.length;
+        var path = aStar(terrain.heights_, terrain.tile_types_,points[cur], points[next]);
+        paths = paths.concat(path);
+    }
+
     console.log(diffTime(t_start) + ": info loaded");
-    mesh = createMesh(terrain.tile_types_, terrain.heights_);
+    mesh = createMesh(terrain.tile_types_, terrain.heights_, paths);
     console.log(diffTime(t_start) + ": mesh created");
-    
+
     mesh.rotation.x = -Math.PI / 2.5;
     
     scene.add(mesh);
