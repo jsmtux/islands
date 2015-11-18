@@ -138,7 +138,7 @@ function getMidPoint(points)
     return ret;
 }
 
-function aStar(data, terrain_data, init, end)
+function aStar(data, terrain_data, init, end, exisiting_path)
 {
     init.g = 0;
     var distance = new THREE.Vector2();
@@ -208,7 +208,16 @@ function aStar(data, terrain_data, init, end)
                 continue;
             }
 
-            var g_score = cur_node.g - Math.abs(data[neighbor.x][neighbor.y] - data[cur_node.pos.x][cur_node.pos.y]) * 5 + 10;
+            var g_score;
+            if (findInList(exisiting_path, neighbor) !== undefined)
+            {
+                g_score = cur_node.g;
+            }
+            else
+            {
+                g_score = cur_node.g + 15
+                    - Math.abs(data[neighbor.x][neighbor.y] - data[cur_node.pos.x][cur_node.pos.y]) * 10;
+            }
             var best_score = false;
 
             var equal_neighbor = findInList(open_list, neighbor);

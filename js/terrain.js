@@ -104,9 +104,21 @@ Terrain.prototype.setHeight = function()
     var current = 1;
     this.mid_points_ = [];
     var prev;
+    
+    for (var i = 0; i < this.tile_types_.length; i++)
+    {
+        for (var j = 0; j < this.tile_types_[0].length; j++)
+        {
+            if (this.tile_types_[i][j] === Terrain.tileType.WATER)
+            {
+                this.heights_[i][j] = -3;
+            }
+        }
+    }
+    
     do
     {
-        changed = setBorder(this.heights_, - 1,current -1, -2);
+        changed = setBorder(this.heights_, - 1,current -1, -2, -3);
         var filled = flood_fill_elements(this.heights_, -2, current);
         if (prev === undefined)
         {
