@@ -218,3 +218,14 @@ Terrain.prototype.generatePoints = function()
     return points;
 }
 
+function createTerrain(size, terrain_function)
+{
+    var terrain = new Terrain(size, terrain_function);
+    terrain.setLake();
+    terrain.setCoast();
+    terrain.initHeight();
+    terrain.setHeight();
+    terrain.getProperties();
+    
+    return terrain;
+}
