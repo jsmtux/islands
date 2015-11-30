@@ -4,17 +4,71 @@ function Terrain(size, island_function)
     this.island_function_ = island_function;
     this.heights_ = [];
     this.coast_line_ = [];
+    this.mid_points_ = [];
 
     //generate shape according to function
     this.tile_types_ = [];
+    
     for(var i = 0; i < this.size_.x; i++)
     {
         this.tile_types_[i] = [];
+        this.heights_[i] = [];
+        var prev_going_up = undefined;
         for(var j = 0; j < this.size_.y; j++)
         {
-            var pos = new THREE.Vector2((i/this.size_.x - 0.5)*2,(j/this.size_.y - 0.5)*2)
-            this.tile_types_[i][j] = this.island_function_.isGround(pos) ? 
-                Terrain.tileType.LAND: Terrain.tileType.WATER;
+            var pos = this.getPosInFunction(i,j);
+            this.heights_[i][j] = this.island_function_.getValue(pos);
+            this.tile_types_[i][j] = this.heights_[i][j] > 0 ? Terrain.tileType.LAND: Terrain.tileType.WATER;
+        }
+    }
+    var tmp_mid_points_x = [];
+    for(var i = 0; i < this.size_.x; i++)
+    {
+        var prev_going_up = undefined;
+        for(var j = 0; j < this.size_.y - 1; j++)
+        {
+            var going_up = this.heights_[i][j] < this.heights_[i][j+1];
+            if (prev_going_up === undefined)
+            {
+                prev_going_up = going_up;
+            }
+            if (prev_going_up !== going_up)
+            {
+                tmp_mid_points_x.push(new THREE.Vector2(i,j));
+            }
+            prev_going_up = going_up;
+        }
+    }
+    
+    
+    var tmp_mid_points_y = [];
+    for(var j = 0; j < this.size_.y; j++)
+    {
+        var prev_going_up = undefined;
+        for(var i = 0; i < this.size_.x - 1; i++)
+        {
+            var pos = this.getPosInFunction(i,j);
+            var going_up = this.heights_[i][j] < this.heights_[i+1][j];
+            if (prev_going_up === undefined)
+            {
+                prev_going_up = going_up;
+            }
+            if (prev_going_up !== going_up)
+            {
+                tmp_mid_points_y.push(new THREE.Vector2(i,j));
+            }
+            prev_going_up = going_up;
+        }
+    }
+    for (var i = 0; i < tmp_mid_points_x.length; i++)
+    {
+        for (var j = 0; j < tmp_mid_points_y.length; j++)
+        {
+            if (tmp_mid_points_x[i].equals(tmp_mid_points_y[j]))
+            {
+                this.mid_points_.push(tmp_mid_points_x[i]);
+                break;
+            }
         }
     }
 }
@@ -26,6 +80,10 @@ Terrain.tileType = {
     SEA: 3
 };
 
+Terrain.prototype.getPosInFunction = function(i, j)
+{
+    return new THREE.Vector2((i/this.size_.x - 0.5)*2,((j+1)/this.size_.y - 0.5)*2);
+};
 
 Terrain.prototype.getProperties = function()
 {
@@ -92,7 +150,7 @@ Terrain.prototype.initHeight = function()
             }
             else
             {
-                this.heights_[i][j] = -1;
+                this.heights_[i][j] = 1;
             }
         }
     }
@@ -100,49 +158,6 @@ Terrain.prototype.initHeight = function()
 
 Terrain.prototype.setHeight = function()
 {
-    var changed = [];
-    var current = 1;
-    this.mid_points_ = [];
-    var prev;
-    
-    for (var i = 0; i < this.tile_types_.length; i++)
-    {
-        for (var j = 0; j < this.tile_types_[0].length; j++)
-        {
-            if (this.tile_types_[i][j] === Terrain.tileType.WATER)
-            {
-                this.heights_[i][j] = -3;
-            }
-        }
-    }
-    
-    do
-    {
-        changed = setBorder(this.heights_, - 1,current -1, -2, -3);
-        var filled = flood_fill_elements(this.heights_, -2, current);
-        if (prev === undefined)
-        {
-            prev = filled.length;
-        }
-        else
-        {
-            var cur = filled.length;
-            if (prev !== cur)
-            {
-                for (var i = 0; i < filled.length; i++)
-                {
-                    var mid_point = getMidPoint(filled[i]);
-                    mid_point.x = Math.floor(mid_point.x);
-                    mid_point.y = Math.floor(mid_point.y);
-                    this.mid_points_.push(mid_point);
-                }
-                prev = cur;
-            }
-        }
-        current++;
-    }
-    while(changed.length > 0);
-    return this.mid_points_;
 }
 
 Terrain.prototype.generatePoints = function()

@@ -46,7 +46,7 @@ function init() {
 
     var terrain_size = new THREE.Vector2(100, 100);
 
-    var terrainFunction3 = new NoiseFunction(1/*, 0.1974621396511793*/);
+    var terrainFunction3 = new NoiseFunction(1, 0.8079815409146249);
 
     console.log(diffTime(t_start) + ": noise created");
     

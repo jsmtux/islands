@@ -215,8 +215,7 @@ function aStar(data, terrain_data, init, end, exisiting_path)
             }
             else
             {
-                g_score = cur_node.g + 15
-                    - Math.abs(data[neighbor.x][neighbor.y] - data[cur_node.pos.x][cur_node.pos.y]) * 10;
+                g_score = cur_node.g + 15;
             }
             var best_score = false;
 
@@ -236,7 +235,6 @@ function aStar(data, terrain_data, init, end, exisiting_path)
 
             if (best_score)
             {
-                var neighbor_node = {};
                 equal_neighbor.parent = cur_node;
                 equal_neighbor.g = g_score;
                 equal_neighbor.f = neighbor.g + neighbor.h;
