@@ -48,7 +48,7 @@ function init() {
 
     var terrainFunction3 = new NoiseFunction(1, 0.8079815409146249);
     
-    var terrain = new Terrain(terrain_size, terrainFunction3);
+    var terrain = new TerrainConstructor(terrain_size, terrainFunction3);
 
     console.log(diffTime(t_start) + ": Base Terrain created");
 
@@ -80,8 +80,10 @@ function init() {
     
     scene = new THREE.Scene();
     var game_scene = new GameScene(scene);
-        
-    game_scene.addMap(terrain.tile_types_, terrain.heights_, paths, terrain_size);
+    
+    
+    var terrain_info = terrain.getInfo(paths);
+    game_scene.addMap(terrain_info, terrain_size);
     
     console.log(diffTime(t_start) + ": Terrain mesh created");
 
@@ -100,8 +102,8 @@ function init() {
     renderer.setSize(window.innerWidth, window.innerHeight);
 
     var scene_camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 10000);
-    camera = new MapCamera(scene_camera, 100);
-    //camera = new CharacterCamera(scene_camera, 7);
+    //camera = new MapCamera(scene_camera, 100);
+    camera = new CharacterCamera(scene_camera, 7);
     scene.add(camera.getInternal());
 
     document.body.appendChild(renderer.domElement);

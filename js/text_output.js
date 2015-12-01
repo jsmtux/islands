@@ -5,7 +5,7 @@ function print(text)
     out_div.innerHTML += text;
 }
 
-Terrain.prototype.print = function(path)
+TerrainConstructor.prototype.print = function(path)
 {
     if (path === undefined)
     {
@@ -45,7 +45,7 @@ Terrain.prototype.print = function(path)
     }
 }
 
-Terrain.prototype.printHeight = function(path)
+TerrainConstructor.prototype.printHeight = function(path)
 {
     if (path === undefined)
     {

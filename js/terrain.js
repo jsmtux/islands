@@ -1,4 +1,4 @@
-function Terrain(size, island_function)
+function TerrainConstructor(size, island_function)
 {
     this.size_ = size;
     this.island_function_ = island_function;
@@ -18,7 +18,7 @@ function Terrain(size, island_function)
         {
             var pos = this.getPosInFunction(i,j);
             this.heights_[i][j] = this.island_function_.getValue(pos);
-            this.tile_types_[i][j] = this.heights_[i][j] > 0 ? Terrain.tileType.LAND: Terrain.tileType.WATER;
+            this.tile_types_[i][j] = this.heights_[i][j] > 0 ? TerrainConstructor.tileType.LAND: TerrainConstructor.tileType.WATER;
         }
     }
     var tmp_mid_points_x = [];
@@ -78,19 +78,19 @@ function Terrain(size, island_function)
     this.getProperties();
 }
 
-Terrain.tileType = {
+TerrainConstructor.tileType = {
     WATER: 0,
     LAND: 1,
     SAND: 2,
     SEA: 3
 };
 
-Terrain.prototype.getPosInFunction = function(i, j)
+TerrainConstructor.prototype.getPosInFunction = function(i, j)
 {
     return new THREE.Vector2((i/this.size_.x - 0.5)*2,((j+1)/this.size_.y - 0.5)*2);
 };
 
-Terrain.prototype.getProperties = function()
+TerrainConstructor.prototype.getProperties = function()
 {
     var res = [];
     
@@ -101,8 +101,8 @@ Terrain.prototype.getProperties = function()
         {
             res[i][j] = 0;
             var current_tile = this.tile_types_[i][j];
-            if (current_tile === Terrain.tileType.LAND 
-               || current_tile === Terrain.tileType.SAND)
+            if (current_tile === TerrainConstructor.tileType.LAND 
+               || current_tile === TerrainConstructor.tileType.SAND)
             {
                 res[i][j] = 1;
             }
@@ -127,19 +127,19 @@ Terrain.prototype.getProperties = function()
     }
 }
 
-Terrain.prototype.setLake = function()
+TerrainConstructor.prototype.setLake = function()
 {
-    flood_fill(this.tile_types_, 0, 0, Terrain.tileType.WATER, Terrain.tileType.SEA);
+    flood_fill(this.tile_types_, 0, 0, TerrainConstructor.tileType.WATER, TerrainConstructor.tileType.SEA);
 }
 
-Terrain.prototype.setCoast = function()
+TerrainConstructor.prototype.setCoast = function()
 {
     this.coast_line_ =
-            setBorder(this.tile_types_, Terrain.tileType.LAND, Terrain.tileType.SEA, Terrain.tileType.SAND);
+            setBorder(this.tile_types_, TerrainConstructor.tileType.LAND, TerrainConstructor.tileType.SEA, TerrainConstructor.tileType.SAND);
     return this.coast_line_;
 }
 
-Terrain.prototype.initHeight = function()
+TerrainConstructor.prototype.initHeight = function()
 {
     this.heights_ = [];
     for (var i in this.tile_types_)
@@ -149,7 +149,7 @@ Terrain.prototype.initHeight = function()
         {
             i = parseInt(i);
             j = parseInt(j);
-            if (this.tile_types_[i][j] === Terrain.tileType.SEA)
+            if (this.tile_types_[i][j] === TerrainConstructor.tileType.SEA)
             {
                 this.heights_[i][j] = 0;
             }
@@ -161,7 +161,7 @@ Terrain.prototype.initHeight = function()
     }
 }
 
-Terrain.prototype.generatePoints = function()
+TerrainConstructor.prototype.generatePoints = function()
 {
     var points = []; 
     for (var i = 0; i < this.mid_points_.length; i++)
@@ -177,26 +177,26 @@ Terrain.prototype.generatePoints = function()
     {
         var cur_point = points[ind];
 
-        if(this.tile_types_[cur_point.pos.x][cur_point.pos.y] !== Terrain.tileType.LAND);
+        if(this.tile_types_[cur_point.pos.x][cur_point.pos.y] !== TerrainConstructor.tileType.LAND);
         {
             for(var i = 0; i < 200; i++)
             {
-                if (this.tile_types_[cur_point.pos.x + i] !== undefined && this.tile_types_[cur_point.pos.x + i][cur_point.pos.y] === Terrain.tileType.LAND)
+                if (this.tile_types_[cur_point.pos.x + i] !== undefined && this.tile_types_[cur_point.pos.x + i][cur_point.pos.y] === TerrainConstructor.tileType.LAND)
                 {
                     cur_point.pos = new THREE.Vector2(cur_point.pos.x + i, cur_point.pos.y);
                     break;
                 }
-                if (this.tile_types_[cur_point.pos.x - i] !== undefined && this.tile_types_[cur_point.pos.x - i][cur_point.pos.y] === Terrain.tileType.LAND)
+                if (this.tile_types_[cur_point.pos.x - i] !== undefined && this.tile_types_[cur_point.pos.x - i][cur_point.pos.y] === TerrainConstructor.tileType.LAND)
                 {
                     cur_point.pos = new THREE.Vector2(cur_point.pos.x - i, cur_point.pos.y);
                     break;
                 }
-                if (this.tile_types_[cur_point.pos.x][cur_point.pos.y + i] === Terrain.tileType.LAND)
+                if (this.tile_types_[cur_point.pos.x][cur_point.pos.y + i] === TerrainConstructor.tileType.LAND)
                 {
                     cur_point.pos = new THREE.Vector2(cur_point.pos.x, cur_point.pos.y + i);
                     break;
                 }
-                if (this.tile_types_[cur_point.pos.x][cur_point.pos.y - i] === Terrain.tileType.LAND)
+                if (this.tile_types_[cur_point.pos.x][cur_point.pos.y - i] === TerrainConstructor.tileType.LAND)
                 {
                     cur_point.pos = new THREE.Vector2(cur_point.pos.x, cur_point.pos.y - i);
                     break;
@@ -232,4 +232,207 @@ Terrain.prototype.generatePoints = function()
     }
 
     return points;
+}
+
+TerrainConstructor.prototype.getInfo = function(paths)
+{
+    var material_ind = {};
+    material_ind[TerrainConstructor.tileType.WATER] = 'images/water.png';
+    material_ind[TerrainConstructor.tileType.LAND] = 'images/ground.png';
+    material_ind[TerrainConstructor.tileType.SAND] = 'images/sand.png';
+    material_ind[TerrainConstructor.tileType.SEA] = 'images/water.png';
+
+    var border_types = {
+        SW:[1,0,0,0],
+        SE:[0,1,0,0],
+        NW:[0,0,1,0],
+        NE:[0,0,0,1],
+        EN:[0,1,1,1],
+        WN:[1,0,1,1],
+        ES:[1,1,0,1],
+        WS:[1,1,1,0],
+        S:[1,1,0,0],
+        N:[0,0,1,1],
+        W:[1,0,1,0],
+        E:[0,1,0,1]
+    };
+    
+    var opposite_borders = {
+        SW:"EN",
+        SE:"WN",
+        NW:"ES",
+        NE:"WS",
+        EN:"SW",
+        WN:"SE",
+        ES:"NW",
+        WS:"NE",
+        S:"N",
+        N:"S",
+        W:"E",
+        E:"W"
+    };
+
+    var sand_water_set = {
+        SW:'images/sand_water_sw.png',
+        SE:'images/sand_water_se.png',
+        NW:'images/sand_water_nw.png',
+        NE:'images/sand_water_ne.png',
+        EN:'images/sand_water_en.png',
+        WN:'images/sand_water_wn.png',
+        ES:'images/sand_water_es.png',
+        WS:'images/sand_water_ws.png',
+        S:'images/sand_water_s.png',
+        N:'images/sand_water_n.png',
+        W:'images/sand_water_w.png',
+        E:'images/sand_water_e.png'
+    };
+
+    var ground_sand_set = {
+        E:'images/ground_sand_e.png',
+        W:'images/ground_sand_w.png',
+        N:'images/ground_sand_n.png',
+        S:'images/ground_sand_s.png',
+        NE:'images/ground_sand_en.png',
+        NW:'images/ground_sand_wn.png',
+        SE:'images/ground_sand_es.png',
+        SW:'images/ground_sand_ws.png',
+        EN:'images/ground_sand_ne.png',
+        WN:'images/ground_sand_nw.png',
+        ES:'images/ground_sand_se.png',
+        WS:'images/ground_sand_sw.png'
+    };
+
+    var material_border = [];
+    material_border[TerrainConstructor.tileType.SAND] = [];
+    material_border[TerrainConstructor.tileType.SAND][TerrainConstructor.tileType.SEA] = sand_water_set;
+    material_border[TerrainConstructor.tileType.LAND] = [];
+    material_border[TerrainConstructor.tileType.LAND][TerrainConstructor.tileType.SAND] = ground_sand_set;
+    
+    var result = [];
+    
+    // Add materialIndex to face
+    for (var i = 0; i < this.size_.x * 2; i++)
+    {
+        result[i] = [];
+        for(var j = 0; j < this.size_.y * 2; j++)
+        {
+            var x = Math.floor(i/2);
+            var y = Math.floor(j/2);
+            
+            var match_types = [];
+            
+            if ((i%2 !== 0 && j%2 !== 0) && (this.tile_types_[x+1] !== undefined))
+            {
+                match_types.push(this.tile_types_[x][y]);
+                match_types.push(this.tile_types_[x+1][y]);
+                match_types.push(this.tile_types_[x][y+1]);
+                match_types.push(this.tile_types_[x+1][y+1]);
+            }
+            else if ((i%2 !== 0) && (this.tile_types_[x+1] !== undefined))
+            {
+                match_types.push(this.tile_types_[x][y]);
+                match_types.push(this.tile_types_[x+1][y]);
+                match_types.push(this.tile_types_[x][y]);
+                match_types.push(this.tile_types_[x+1][y]);
+            }
+            else if (j%2 !== 0)
+            {
+                match_types.push(this.tile_types_[x][y]);
+                match_types.push(this.tile_types_[x][y]);
+                match_types.push(this.tile_types_[x][y+1]);
+                match_types.push(this.tile_types_[x][y+1]);
+            }
+            else
+            {
+                match_types.push(this.tile_types_[x][y]);
+                match_types.push(this.tile_types_[x][y]);
+                match_types.push(this.tile_types_[x][y]);
+                match_types.push(this.tile_types_[x][y]);
+            }
+
+            var ground_types = [];
+            
+            for(var ind = 0; ind < match_types.length; ind ++)
+            {
+                var type = ground_types.indexOf(match_types[ind]);
+                if (type === -1 && match_types[ind] !== undefined)
+                {
+                    ground_types.push(match_types[ind]);
+                }
+            }
+            
+            for (var ind = 0; ind < match_types.length; ind ++)
+            {
+                if (match_types[ind] === ground_types[0] || match_types[ind] === undefined)
+                {
+                    match_types[ind] = 0;
+                }
+                else
+                {
+                    match_types[ind] = 1;
+                }
+            }
+            
+            var border_type;
+            var keys = Object.keys(border_types);
+            for (var a = 0; a < keys.length; a++)
+            {
+                var equals = true;
+                for(var b = 0; b < border_types[keys[a]].length; b++)
+                {
+                    if (border_types[keys[a]][b] !== match_types[b])
+                    {
+                        equals = false;
+                        break;
+                    }
+                }
+                if (equals)
+                {
+                    border_type = keys[a];
+                    break;
+                }
+            } 
+            
+            var index = material_ind[0];
+            
+            if (ground_types.length === 1)
+            {
+                index = material_ind[ground_types[0]];
+            }
+            else if (ground_types.length === 2)
+            { 
+                var mat_a = ground_types[0];
+                var mat_b = ground_types[1];
+                if (material_border[mat_a] !== undefined && material_border[mat_a][mat_b] !== undefined)
+                {
+                    var tmp = material_border[mat_a][mat_b][border_type];
+                    if (tmp !== undefined)
+                    {
+                        index = tmp;
+                    }
+                }
+                else if (material_border[mat_b] !== undefined && material_border[mat_b][mat_a] !== undefined)
+                {
+                    var tmp = material_border[mat_b][mat_a][opposite_borders[border_type]];
+                    if (tmp !== undefined)
+                    {
+                        index = tmp;
+                    }
+                }
+            }
+            else
+            {
+                console.log("unhandled case for " + ground_types.length + "different ground types");
+            }
+                        
+            var road = findInList(paths, new THREE.Vector2(x,y)) !== undefined;
+            
+            result[i][j] = {
+                index: index,
+                height: this.heights_[x][y]*0.5,
+                road: road
+            };
+        }
+    }
+    return result;
 }

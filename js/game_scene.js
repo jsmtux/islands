@@ -19,7 +19,7 @@ Tile.prototype.setPosition = function(pos)
     this.position_ = pos;
     if (this.mesh_)
     {
-        this.mesh_.position.z = 0.5 * this.scene_.heights_[Math.floor(pos.x)][Math.floor(pos.y)] + this.offset_.z;
+        this.mesh_.position.z = 0.5 * this.scene_.terrain_info_[Math.floor(pos.x * 2)][Math.floor(pos.y * 2)].height + this.offset_.z;
         this.mesh_.position.y = -this.position_.x + this.scene_.terrain_size_.x /2 + this.offset_.y;
         this.mesh_.position.x = this.position_.y - this.scene_.terrain_size_.x /2 + this.offset_.x;
     }
@@ -92,7 +92,7 @@ AnimatedTile.prototype.update = function(time)
 function GameScene(three_scene)
 {
     this.three_scene_ = three_scene;
-    this.heights_;
+    this.terrain_info_;
     this.terrain_size_;
     this.tex_loader_ = new THREE.TextureLoader();
     this.material_manager_ = new MaterialManager(this.tex_loader_);
@@ -100,10 +100,10 @@ function GameScene(three_scene)
     this.json_loader_ = new THREE.JSONLoader();
 }
 
-GameScene.prototype.addMap = function(tile_types, tile_heights, paths, terrain_size)
+GameScene.prototype.addMap = function(terrain_info, terrain_size)
 {
-    this.heights_ = tile_heights;
-    var mesh = this.mesh_factory_.createMesh(tile_types, tile_heights, paths);    
+    this.terrain_info_ = terrain_info;
+    var mesh = this.mesh_factory_.createMesh(terrain_info);    
     this.three_scene_.add(mesh);
     this.terrain_size_ = terrain_size;
 }

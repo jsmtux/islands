@@ -203,7 +203,9 @@ function aStar(data, terrain_data, init, end, exisiting_path)
         {
             var neighbor = neighbors[i];
             var terrain_type = terrain_data[neighbor.x][neighbor.y];
-            if (findInList(closed_list, neighbor) !== undefined || (terrain_type !== Terrain.tileType.LAND && terrain_type !== Terrain.tileType.SAND))
+            if (findInList(closed_list, neighbor) !== undefined 
+                    || (terrain_type !== TerrainConstructor.tileType.LAND 
+                        && terrain_type !== TerrainConstructor.tileType.SAND))
             {
                 continue;
             }
