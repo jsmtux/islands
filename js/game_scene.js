@@ -64,21 +64,28 @@ Tile.prototype.setOffset = function(offset)
 function AnimatedTile(scene)
 {
     Tile.call(this, scene);
+    this.animations_ = [];
+    this.current_animation_;
 }
 
 AnimatedTile.prototype = Object.create(Tile.prototype);
 AnimatedTile.prototype.constructor = AnimatedTile;
 
-AnimatedTile.prototype.setAnimationMixer = function(mixer)
+AnimatedTile.prototype.addAnimation = function(animation)
 {
-    this.mixer_ = mixer;
+    this.animations_.push(animation);
+}
+
+AnimatedTile.prototype.setCurrentAnimation = function(index)
+{
+    this.current_animation_ = index;
 }
 
 AnimatedTile.prototype.update = function(time)
 {
-    if (this.mixer_)
+    if (this.current_animation_ !== undefined && this.animations_[this.current_animation_])
     {
-        this.mixer_.update(time);
+        this.animations_[this.current_animation_].update(time);
     }
 }
 
@@ -100,7 +107,7 @@ GameScene.prototype.addMap = function(tile_types, tile_heights, paths, terrain_s
     this.three_scene_.add(mesh);
     this.terrain_size_ = terrain_size;
 }
-
+/*http://opengameart.org/content/medieval-house-pack*/
 GameScene.prototype.addInternalJSONModel = function(ret, model_path, model_texture, modifiers, animated)
 {
     var self = this;
@@ -111,9 +118,12 @@ GameScene.prototype.addInternalJSONModel = function(ret, model_path, model_textu
             mat.skinning = true;
             var new_mesh = new THREE.SkinnedMesh(geom, mat);
             new_mesh.doubleSided = true;
-            var mixer = new THREE.AnimationMixer( new_mesh );
-            mixer.addAction( new THREE.AnimationAction( geom.animations[ 6 ] ) );
-            ret.setAnimationMixer(mixer);
+            for (var i = 0; i < geom.animations.length; i++)
+            {
+                var mixer = new THREE.AnimationMixer(new_mesh);
+                mixer.addAction( new THREE.AnimationAction(geom.animations[i]));
+                ret.addAnimation(mixer);
+            }
         }
         else
         {
