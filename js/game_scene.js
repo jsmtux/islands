@@ -9,7 +9,6 @@ function Tile(scene)
 
 Tile.prototype.initialize = function(mesh)
 {
-    console.log("tile called");
     this.mesh_ = mesh; 
     this.setPosition(this.position_);
     this.setRotation(this.rotation_);
@@ -59,6 +58,7 @@ Tile.prototype.getAbsolutePosition = function()
 Tile.prototype.setOffset = function(offset)
 {
     this.offset_ = offset;
+    this.setPosition(this.getPosition());
 }
 
 function AnimatedTile(scene)

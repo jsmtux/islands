@@ -71,6 +71,11 @@ function Terrain(size, island_function)
             }
         }
     }
+    
+    this.setLake();
+    this.setCoast();
+    this.initHeight();
+    this.getProperties();
 }
 
 Terrain.tileType = {
@@ -156,10 +161,6 @@ Terrain.prototype.initHeight = function()
     }
 }
 
-Terrain.prototype.setHeight = function()
-{
-}
-
 Terrain.prototype.generatePoints = function()
 {
     var points = []; 
@@ -204,7 +205,7 @@ Terrain.prototype.generatePoints = function()
         }
     }
 
-    for (var p = 0; p < 3; p++)
+    for (var p = 0; p < 1; p++)
     {
         var max_len = 0;
         var max_ind = 0;
@@ -231,16 +232,4 @@ Terrain.prototype.generatePoints = function()
     }
 
     return points;
-}
-
-function createTerrain(size, terrain_function)
-{
-    var terrain = new Terrain(size, terrain_function);
-    terrain.setLake();
-    terrain.setCoast();
-    terrain.initHeight();
-    terrain.setHeight();
-    terrain.getProperties();
-    
-    return terrain;
 }
