@@ -72,11 +72,11 @@ function init() {
     
     for (var i = 0; i < points.length; i++)
     {
-        var tile = game_scene.addJSONModel('models/tree.json', "images/tree.png", 0.2);
+        var tile = game_scene.addJSONModel('models/tree.json', "images/tree.png", {scale:0.2});
         tile.setPosition(points[i].pos);
     }
     
-    pc_tile = game_scene.addJSONModel('models/tree.json', "images/tree.png", 0.2);
+    pc_tile = game_scene.addAnimatedJSONModel('models/archer.json', "images/archer.png", {scale:0.07, offset:new THREE.Vector3(0.0,0.0,0.7)});
     pc_tile.setPosition(new THREE.Vector2(20,20));
 
     renderer = new THREE.WebGLRenderer();
@@ -96,38 +96,43 @@ var alpha = 0;
 function render() {
     renderer.render(scene, camera);
     //mesh.rotation.z += 0.005;
-    var distance = 40;
+    var distance = 2;
     //alpha += 0.005;
     if (pc_tile === undefined)
     {
-        camera.position.z = 20;
+        camera.position.z = distance;
         camera.position.y = -(distance) * Math.cos(alpha);
         camera.position.x = (distance) * Math.sin(alpha);
         camera.lookAt(new THREE.Vector3(0,0,0));
     }
     else
     {
+        pc_tile.update(0.02);
         var tile_pos = pc_tile.getPosition();
         if (key_states.UP)
         {
             tile_pos.x += 0.1;
+            pc_tile.setRotation(new THREE.Vector3(0,0,0));
         }
         if (key_states.DOWN)
         {
             tile_pos.x -= 0.1;
+            pc_tile.setRotation(new THREE.Vector3(0,Math.PI,0));
         }
         if (key_states.LEFT)
         {
             tile_pos.y += 0.1;
+            pc_tile.setRotation(new THREE.Vector3(0,Math.PI / 2,0));
         }
         if (key_states.RIGHT)
         {
             tile_pos.y -= 0.1;
+            pc_tile.setRotation(new THREE.Vector3(0,-Math.PI / 2,0));
         }
         pc_tile.setPosition(tile_pos);
         var pos = pc_tile.getAbsolutePosition();
-        camera.position.z = pos.z + 5;
-        camera.position.y = pos.y + 5;
+        camera.position.z = pos.z + distance;
+        camera.position.y = pos.y + distance;
         camera.position.x = pos.x;
         camera.lookAt(pos);
     }
