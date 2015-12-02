@@ -19,7 +19,7 @@ Tile.prototype.setPosition = function(pos)
     this.position_ = pos;
     if (this.mesh_)
     {
-        this.mesh_.position.z = 0.5 * this.scene_.terrain_info_.heights_[Math.floor(pos.x * 2)][Math.floor(pos.y * 2)] + this.offset_.z;
+        this.mesh_.position.z = 0.5 * this.scene_.terrain_info_.heights_[Math.floor(pos.x)][Math.floor(pos.y)] + this.offset_.z;
         this.mesh_.position.y = -this.position_.x + this.scene_.terrain_size_.x /2 + this.offset_.y;
         this.mesh_.position.x = this.position_.y - this.scene_.terrain_size_.x /2 + this.offset_.x;
     }

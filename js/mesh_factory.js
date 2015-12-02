@@ -5,20 +5,20 @@ function MeshFactory(matloader)
 
 MeshFactory.prototype.createMesh = function(terrain_info)
 {
-    var size_x = terrain_info.heights_.length / 2;
-    var size_y = terrain_info.heights_[0].length / 2;
-    var geometry = new THREE.PlaneGeometry(size_x, size_y, size_x * 2, size_y * 2);
+    var size_x = terrain_info.heights_.length;
+    var size_y = terrain_info.heights_[0].length;
+    var geometry = new THREE.PlaneGeometry(size_x , size_y, size_x, size_y);
 
     var uvs = [new THREE.Vector2(0,0),
         new THREE.Vector2(1,0),
         new THREE.Vector2(1,1),
         new THREE.Vector2(0,1)];
     
-    for (var i = 0; i < size_x * 2; i++)
+    for (var i = 0; i < size_x; i++)
     {
-        for(var j = 0; j < size_y * 2; j++)
+        for(var j = 0; j < size_y; j++)
         {
-            var face_ind = (i * size_y * 2 + j) * 2;
+            var face_ind = (i * size_y + j) * 2;
             var mat =  this.matloader_.loadMultitexturedMaterial(
                     terrain_info.urls_[i][j],terrain_info.over_urls_[i][j]);
             geometry.faces[face_ind].materialIndex = mat;

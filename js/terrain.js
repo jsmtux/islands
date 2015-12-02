@@ -1,6 +1,6 @@
 function TerrainConstructor(size, island_function)
 {
-    this.size_ = size;
+    this.size_ = size.clone().divideScalar(2);
     this.island_function_ = island_function;
     this.heights_ = [];
     this.coast_line_ = [];

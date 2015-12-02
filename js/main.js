@@ -44,7 +44,7 @@ function init() {
     var t_start = new Date().getTime();
     var random = new RandGenerator();
 
-    var terrain_size = new THREE.Vector2(100, 100);
+    var terrain_size = new THREE.Vector2(200, 200);
 
     var terrainFunction3 = new NoiseFunction(1, 0.8079815409146249);
     
@@ -89,11 +89,11 @@ function init() {
 
     for (var i = 0; i < points.length; i++)
     {
-        var tile = game_scene.addJSONModel('models/tree.json', "images/tree.png", {scale:0.3, offset:new THREE.Vector3(0.2,-0.2,0.0)});
-        tile.setPosition(points[i].pos);
+        var tile = game_scene.addJSONModel('models/tree.json', "images/tree.png", {scale:0.6, offset:new THREE.Vector3(0.4,-0.4,0.0)});
+        tile.setPosition(points[i].pos.multiplyScalar(2));
     }
     
-    pc_tile = game_scene.addAnimatedJSONModel('models/archer.json', "images/archer.png", {scale:0.06, offset:new THREE.Vector3(0.0,0.0,0.7)});
+    pc_tile = game_scene.addAnimatedJSONModel('models/archer.json', "images/archer.png", {scale:0.12, offset:new THREE.Vector3(0.0,0.0,1.4)});
     pc_tile.setPosition(new THREE.Vector2(20,20));
     
     console.log(diffTime(t_start) + ": Elements added");
@@ -135,25 +135,25 @@ function render() {
         if (key_states.UP)
         {
             pc_tile.setCurrentAnimation(6);
-            tile_pos.x += 0.1;
+            tile_pos.x += 0.2;
             pc_tile.setRotation(new THREE.Vector3(0,0,0));
         }
         if (key_states.DOWN)
         {
             pc_tile.setCurrentAnimation(6);
-            tile_pos.x -= 0.1;
+            tile_pos.x -= 0.2;
             pc_tile.setRotation(new THREE.Vector3(0,Math.PI,0));
         }
         if (key_states.LEFT)
         {
             pc_tile.setCurrentAnimation(6);
-            tile_pos.y += 0.1;
+            tile_pos.y += 0.2;
             pc_tile.setRotation(new THREE.Vector3(0,Math.PI / 2,0));
         }
         if (key_states.RIGHT)
         {
             pc_tile.setCurrentAnimation(6);
-            tile_pos.y -= 0.1;
+            tile_pos.y -= 0.2;
             pc_tile.setRotation(new THREE.Vector3(0,-Math.PI / 2,0));
         }
         pc_tile.update(0.02);
