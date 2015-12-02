@@ -48,49 +48,46 @@ function init() {
 
     var terrainFunction3 = new NoiseFunction(1, 0.8079815409146249);
     
-    var terrain = new TerrainConstructor(terrain_size, terrainFunction3);
+    var terrain_constructor = new TerrainConstructor(terrain_size, terrainFunction3);
 
     console.log(diffTime(t_start) + ": Base Terrain created");
+    
+    scene = new THREE.Scene();
+    var game_scene = new GameScene(scene);
+    
+    var terrain = terrain_constructor.getInfo();
 
-    var paths = [];
-    var points = terrain.generatePoints();
+    var points = terrain_constructor.generatePoints();
     for (var i = 0; i < points.length; i++)
     {
         var cur = i;
         var next = (i + 1) % points.length;
-        var path = terrain.aStar(points[cur], points[next], paths);
-        paths = paths.concat(path);
+        var path = terrain.aStar(points[cur], points[next]);
+        for (var x = 0; x < terrain_size.x*2; x++)
+        {
+            for (var y = 0; y < terrain_size.y*2; y++)
+            {
+                var pos = new THREE.Vector2(Math.floor(x), Math.floor(y));
+                if(findInList(path, pos) !== undefined)
+                {
+                    terrain.getTile(x,y).set_over_url(1);
+                }
+            }
+        }
     }
     
     console.log(diffTime(t_start) + ": Terrain paths created");
 
     console.log(diffTime(t_start) + ": Terrain elements created");
-    
-    scene = new THREE.Scene();
-    var game_scene = new GameScene(scene);
-    
-    var terrain_info = terrain.getInfo();
 
-    for (var i = 0; i < terrain_size.x*2; i++)
-    {
-        for (var j = 0; j < terrain_size.y*2; j++)
-        {
-            var pos = new THREE.Vector2(Math.floor(i/2), Math.floor(j/2));
-            if(findInList(paths, pos) !== undefined)
-            {
-                terrain_info.over_urls_[i][j] = "images/path.png";
-            }
-        }
-    }
-
-    game_scene.addMap(terrain_info, terrain_size);
+    game_scene.addMap(terrain, terrain_size);
     
     console.log(diffTime(t_start) + ": Terrain mesh created");
 
     for (var i = 0; i < points.length; i++)
     {
         var tile = game_scene.addJSONModel('models/tree.json', "images/tree.png", {scale:0.6, offset:new THREE.Vector3(0.4,-0.4,0.0)});
-        tile.setPosition(points[i].pos.multiplyScalar(2));
+        tile.setPosition(points[i].pos);
     }
     
     pc_tile = game_scene.addAnimatedJSONModel('models/archer.json', "images/archer.png", {scale:0.12, offset:new THREE.Vector3(0.0,0.0,1.4)});
@@ -102,8 +99,8 @@ function init() {
     renderer.setSize(window.innerWidth, window.innerHeight);
 
     var scene_camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 10000);
-    //camera = new MapCamera(scene_camera, 100);
-    camera = new CharacterCamera(scene_camera, 7);
+    camera = new MapCamera(scene_camera, 200);
+    //camera = new CharacterCamera(scene_camera, 7);
     scene.add(camera.getInternal());
 
     document.body.appendChild(renderer.domElement);

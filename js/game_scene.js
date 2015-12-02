@@ -19,8 +19,9 @@ Tile.prototype.setPosition = function(pos)
     this.position_ = pos;
     if (this.mesh_)
     {
-        this.mesh_.position.z = 0.5 * this.scene_.terrain_info_.heights_[Math.floor(pos.x)][Math.floor(pos.y)] + this.offset_.z;
-        this.mesh_.position.y = -this.position_.x + this.scene_.terrain_size_.x /2 + this.offset_.y;
+        var current_tile = this.scene_.getTerrain().getTile(Math.floor(pos.x),Math.floor(pos.y));
+        this.mesh_.position.z = 0.5 * current_tile.get_height() + this.offset_.z;
+        this.mesh_.position.y = -this.position_.x + this.scene_.terrain_size_.y /2 + this.offset_.y;
         this.mesh_.position.x = this.position_.y - this.scene_.terrain_size_.x /2 + this.offset_.x;
     }
 }
@@ -98,6 +99,11 @@ function GameScene(three_scene)
     this.material_manager_ = new MaterialManager(this.tex_loader_);
     this.mesh_factory_ = new MeshFactory(this.material_manager_);
     this.json_loader_ = new THREE.JSONLoader();
+}
+
+GameScene.prototype.getTerrain = function()
+{
+    return this.terrain_info_;
 }
 
 GameScene.prototype.addMap = function(terrain_info, terrain_size)
