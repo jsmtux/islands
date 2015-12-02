@@ -5,8 +5,8 @@ function MeshFactory(matloader)
 
 MeshFactory.prototype.createMesh = function(terrain_info)
 {
-    var size_x = terrain_info.length / 2;
-    var size_y = terrain_info[0].length / 2;
+    var size_x = terrain_info.heights_.length / 2;
+    var size_y = terrain_info.heights_[0].length / 2;
     var geometry = new THREE.PlaneGeometry(size_x, size_y, size_x * 2, size_y * 2);
 
     var uvs = [new THREE.Vector2(0,0),
@@ -19,12 +19,8 @@ MeshFactory.prototype.createMesh = function(terrain_info)
         for(var j = 0; j < size_y * 2; j++)
         {
             var face_ind = (i * size_y * 2 + j) * 2;
-            var path_url = "images/empty.png";
-            if (terrain_info[i][j].road === true)
-            {
-                path_url = "images/path.png";
-            }
-            var mat =  this.matloader_.loadMultitexturedMaterial(terrain_info[i][j].index,path_url);
+            var mat =  this.matloader_.loadMultitexturedMaterial(
+                    terrain_info.urls_[i][j],terrain_info.over_urls_[i][j]);
             geometry.faces[face_ind].materialIndex = mat;
             geometry.faceVertexUvs[0][face_ind] = [uvs[0], uvs[1], uvs[3]];
             geometry.faces[face_ind + 1].materialIndex = mat;
@@ -32,7 +28,7 @@ MeshFactory.prototype.createMesh = function(terrain_info)
 
             if (i%2 === 0 && j%2 === 0)
             {
-                var height = terrain_info[i][j].height;
+                var height = terrain_info.heights_[i][j];
                 geometry.vertices[geometry.faces[face_ind].a].z = height;
                 geometry.vertices[geometry.faces[face_ind].b].z = height;
                 geometry.vertices[geometry.faces[face_ind].c].z = height;

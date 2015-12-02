@@ -26,10 +26,10 @@ function findInList(list, pos)
     return undefined;
 }
 
-function flood_fill(map_data, i, j, base, replacement)
+function flood_fill(map_data, x, y, base, replacement)
 {
     var ret = [];
-    var open_nodes = [new THREE.Vector2(i,j)];
+    var open_nodes = [new THREE.Vector2(x,y)];
     while (open_nodes.length > 0)
     {
         var cur = open_nodes.pop();
@@ -138,7 +138,7 @@ function getMidPoint(points)
     return ret;
 }
 
-function aStar(data, terrain_data, init, end, exisiting_path)
+function aStar(data, terrain_data, init, end, exisiting_path, valid_indexes)
 {
     init.g = 0;
     var distance = new THREE.Vector2();
@@ -203,9 +203,7 @@ function aStar(data, terrain_data, init, end, exisiting_path)
         {
             var neighbor = neighbors[i];
             var terrain_type = terrain_data[neighbor.x][neighbor.y];
-            if (findInList(closed_list, neighbor) !== undefined 
-                    || (terrain_type !== TerrainConstructor.tileType.LAND 
-                        && terrain_type !== TerrainConstructor.tileType.SAND))
+            if (findInList(closed_list, neighbor) !== undefined || valid_indexes.indexOf(terrain_type) === -1)
             {
                 continue;
             }

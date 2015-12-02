@@ -234,6 +234,11 @@ TerrainConstructor.prototype.generatePoints = function()
     return points;
 }
 
+TerrainConstructor.prototype.aStar = function(init, end, existing_path)
+{
+    return aStar(this.heights_, this.tile_types_, init, end, existing_path, [TerrainConstructor.tileType.LAND, TerrainConstructor.tileType.SAND]);
+}
+
 TerrainConstructor.prototype.getInfo = function(paths)
 {
     var material_ind = {};
@@ -308,12 +313,16 @@ TerrainConstructor.prototype.getInfo = function(paths)
     material_border[TerrainConstructor.tileType.LAND] = [];
     material_border[TerrainConstructor.tileType.LAND][TerrainConstructor.tileType.SAND] = ground_sand_set;
     
-    var result = [];
+    var ret_urls = [];
+    var ret_over_urls = [];
+    var ret_heights = [];
     
     // Add materialIndex to face
     for (var i = 0; i < this.size_.x * 2; i++)
     {
-        result[i] = [];
+        ret_urls[i] = [];
+        ret_over_urls[i] = [];
+        ret_heights[i] = [];
         for(var j = 0; j < this.size_.y * 2; j++)
         {
             var x = Math.floor(i/2);
@@ -424,15 +433,18 @@ TerrainConstructor.prototype.getInfo = function(paths)
             {
                 console.log("unhandled case for " + ground_types.length + "different ground types");
             }
-                        
-            var road = findInList(paths, new THREE.Vector2(x,y)) !== undefined;
             
-            result[i][j] = {
-                index: index,
-                height: this.heights_[x][y]*0.5,
-                road: road
-            };
+            ret_urls[i][j] = index;
+            ret_over_urls[i][j] = "images/empty.png";
+            ret_heights[i][j] = this.heights_[x][y]*0.5;
         }
     }
-    return result;
+    return new Terrain(ret_urls, ret_over_urls, ret_heights);
+}
+
+function Terrain(urls, over_urls, heights)
+{
+    this.urls_ = urls;
+    this.over_urls_ = over_urls;
+    this.heights_ = heights;
 }

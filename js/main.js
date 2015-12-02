@@ -58,31 +58,31 @@ function init() {
     {
         var cur = i;
         var next = (i + 1) % points.length;
-        var path = aStar(terrain.heights_, terrain.tile_types_,points[cur], points[next], paths);
+        var path = terrain.aStar(points[cur], points[next], paths);
         paths = paths.concat(path);
     }
     
     console.log(diffTime(t_start) + ": Terrain paths created");
-
-    var terrain_elements = [];
-    for (var i = 0; i < terrain_size.x; i++)
-    {
-        terrain_elements[i] = [];
-        for (var j = 0; j < terrain_size.y; j++)
-        {
-            var pos = new THREE.Vector2(Math.floor(i), Math.floor(j));
-            found = findInList(pos, paths) !== undefined;
-            terrain_elements[i][j] = found;
-        }
-    }
 
     console.log(diffTime(t_start) + ": Terrain elements created");
     
     scene = new THREE.Scene();
     var game_scene = new GameScene(scene);
     
-    
-    var terrain_info = terrain.getInfo(paths);
+    var terrain_info = terrain.getInfo();
+
+    for (var i = 0; i < terrain_size.x*2; i++)
+    {
+        for (var j = 0; j < terrain_size.y*2; j++)
+        {
+            var pos = new THREE.Vector2(Math.floor(i/2), Math.floor(j/2));
+            if(findInList(paths, pos) !== undefined)
+            {
+                terrain_info.over_urls_[i][j] = "images/path.png";
+            }
+        }
+    }
+
     game_scene.addMap(terrain_info, terrain_size);
     
     console.log(diffTime(t_start) + ": Terrain mesh created");
