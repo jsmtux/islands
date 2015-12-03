@@ -75,23 +75,28 @@ function init() {
             }
         }
     }
-    
     console.log(diffTime(t_start) + ": Terrain paths created");
 
-    console.log(diffTime(t_start) + ": Terrain elements created");
+    for (var i = 0; i < points.length; i++)
+    {
+    }
+    
+    function addTreeCallback(position)
+    {
+        var tile = game_scene.addJSONModel('models/tree.json', "images/tree.png", {scale:0.6, offset:new THREE.Vector3(0.4,-0.4,0.0)});
+        tile.setPosition(position);        
+    }
+   
+    terrain.initPaths(addTreeCallback);
+    
+    console.log(diffTime(t_start) + ": Terrain paths improved");
 
     game_scene.addMap(terrain, terrain_size);
     
     console.log(diffTime(t_start) + ": Terrain mesh created");
-
-    for (var i = 0; i < points.length; i++)
-    {
-        var tile = game_scene.addJSONModel('models/tree.json', "images/tree.png", {scale:0.6, offset:new THREE.Vector3(0.4,-0.4,0.0)});
-        tile.setPosition(points[i].pos);
-    }
     
     pc_tile = game_scene.addAnimatedJSONModel('models/archer.json', "images/archer.png", {scale:0.12, offset:new THREE.Vector3(0.0,0.0,1.4)});
-    pc_tile.setPosition(new THREE.Vector2(20,20));
+    pc_tile.setPosition(new THREE.Vector2(170,50));
     
     console.log(diffTime(t_start) + ": Elements added");
 
@@ -99,8 +104,8 @@ function init() {
     renderer.setSize(window.innerWidth, window.innerHeight);
 
     var scene_camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 10000);
-    camera = new MapCamera(scene_camera, 200);
-    //camera = new CharacterCamera(scene_camera, 7);
+    //camera = new MapCamera(scene_camera, 200);
+    camera = new CharacterCamera(scene_camera, 7);
     scene.add(camera.getInternal());
 
     document.body.appendChild(renderer.domElement);

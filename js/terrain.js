@@ -172,3 +172,41 @@ Terrain.prototype.aStar = function(init, end)
     console.log("path not found between " + init.pos.x + " and " + end.pos.x);
     return [];
 }
+
+Terrain.prototype.initPaths = function(borderCallback)
+{
+    var self = this;
+    var pre_check_fun = function(i,j){
+        return self.over_urls_[i][j] === 0 && self.can_walks_[i][j];
+    };
+    var check_fun = function(neighbors){
+        for (var i = 0; i < neighbors.length; i++)
+        {
+            for (var j = 0; j < neighbors.length; j++)
+            {
+                if (neighbors[i][j] === 1)
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    };
+    var iterations = 4;
+    for (var i = 0; i < 4; i++)
+    {
+        var result = dilate(this.over_urls_, pre_check_fun, check_fun);
+        for (var x = 0; x < result.length; x++)
+        {
+            var cur = result[x];
+            if (i === (iterations - 1))
+            {
+                borderCallback(new THREE.Vector2(cur[0],cur[1]))
+            }
+            else
+            {
+                this.over_urls_[cur[0]][cur[1]] = 1;
+            }
+        }
+    }
+}

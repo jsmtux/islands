@@ -79,15 +79,11 @@ function getNeighbors(array, x, y)
         ret[i+1] = [];
         for(var j = -1; j < 2; j++)
         {
-            try
+            if (array[x+i] !== undefined && array[x+i][y+j] !== undefined)
             {
             	ret[i+1][j+1] = array[x+i][y+j];
-                if (ret[i+1][j+1] === undefined)
-                {
-                    ret[i+1][j+1] = -1;
-                }
             }
-            catch(err)
+            else
             {
                 ret[i+1][j+1] = -1;
             }
@@ -136,4 +132,27 @@ function getMidPoint(points)
         ret.add(points[i].multiplyScalar(1/len));
     }
     return ret;
+}
+
+function dilate(data, pre_check_fun, check_fun)
+{
+    var size_x = data.length;
+    var size_y = data[0].length;
+    
+    var to_fill = [];
+    for (var i = 0; i < size_x; i++)
+    {
+        for (var j = 0; j < size_y; j++)
+        {
+            if (pre_check_fun(i,j))
+            {
+                var neighbors = getNeighbors(data, i, j);
+                if (check_fun(neighbors))
+                {
+                    to_fill.push([i,j]);
+                }
+            }
+        }
+    }
+    return to_fill;
 }
