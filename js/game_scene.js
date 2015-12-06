@@ -98,7 +98,7 @@ function GameScene(three_scene)
     this.tex_loader_ = new THREE.TextureLoader();
     this.material_manager_ = new MaterialManager(this.tex_loader_);
     this.mesh_factory_ = new MeshFactory(this.material_manager_);
-    this.json_loader_ = new THREE.JSONLoader();
+    this.model_manager_ = new ModelManager();
 }
 
 GameScene.prototype.getTerrain = function()
@@ -113,12 +113,14 @@ GameScene.prototype.addMap = function(terrain_info, terrain_size)
     this.three_scene_.add(mesh);
     this.terrain_size_ = terrain_size;
 }
+
 /*http://opengameart.org/content/medieval-house-pack*/
 GameScene.prototype.addInternalJSONModel = function(ret, model_path, model_texture, modifiers, animated)
 {
     var self = this;
-    this.json_loader_.load(model_path, function(geom, mat){
-        var mat = self.material_manager_.loadTexturedMaterial(model_texture);
+    this.model_manager_.load(model_path, function(geom, mat){
+        var transparent = modifiers && modifiers.transparent === true? true:false;
+        var mat = self.material_manager_.loadTexturedMaterial(model_texture, transparent);
         if (animated)
         {
             mat.skinning = true;

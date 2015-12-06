@@ -1,22 +1,33 @@
-var camera, scene, renderer;
+var cur_cam;
+var scene_camera, map_camera;
+var scene, renderer;
 
 var key_codes = {
     38: "UP",
     40: "DOWN",
     37: "LEFT",
-    39: "RIGHT"
+    39: "RIGHT",
+    80: "P"
 };
 
 var key_states = {
     UP:false,
     DOWN:false,
     LEFT:false,
-    RIGHT:false
+    RIGHT:false,
+    P: false
 };
+
+var key_events = {};
 
 function handleKeyDown(event)
 {
     key_states[key_codes[event.keyCode]] = true;
+    if (key_codes[event.keyCode] !== undefined && key_events[key_codes[event.keyCode]] !== undefined)
+    {
+        console.log("defined callback!!");
+        key_events[key_codes[event.keyCode]]();
+    }
 }
 
 function handleKeyUp(event)
@@ -45,7 +56,7 @@ function init() {
     var random = new RandGenerator();
 
     var terrain_size = new THREE.Vector2(300, 300);
-
+/*0.5252345739863813 lake*/
     var terrainFunction3 = new NoiseFunction(1/*, 0.8669664210174233*/);
     
     var terrain_constructor = new TerrainConstructor(terrain_size, terrainFunction3);
@@ -73,6 +84,13 @@ function init() {
         paths.push(path);
         console.log(diffTime(t_start) + ": Path generated");
     }
+    
+    function addBush(position)
+    {
+        var tile = game_scene.addJSONModel('models/bush.json', "images/bush.png", {scale:0.1, offset:new THREE.Vector3(0.4,-0.4,0.0), transparent:true});
+        tile.setPosition(position);        
+    }
+
     for (var i = 0; i < paths.length; i++)
     {
         var prev_pos = undefined;
@@ -93,7 +111,7 @@ function init() {
             position = new_pos;
             if (normal !== undefined)
             {
-                var size = 2;
+                var size = 4;
                 size += Math.abs(noise.simplex2(x/30,0)*8);
                 for (var ind = 0; ind < size; ind++)
                 {
@@ -101,6 +119,10 @@ function init() {
                     var tile = terrain.getTile(Math.floor(pos.x), Math.floor(pos.y));
                     if (tile.get_can_walk())
                     {
+                        if (noise.simplex2(x/30,0)>0.5)
+                        {
+                            addBush(new THREE.Vector2(Math.floor(pos.x), Math.floor(pos.y)));
+                        }
                         tile.set_over_url(1);
                     }
                 }
@@ -108,7 +130,7 @@ function init() {
         }
     }
     console.log(diffTime(t_start) + ": Terrain paths created");
-    
+
     function addTreeCallback(position)
     {
         var tile = game_scene.addJSONModel('models/tree.json', "images/tree.png", {scale:0.6, offset:new THREE.Vector3(0.4,-0.4,0.0)});
@@ -131,12 +153,26 @@ function init() {
     renderer = new THREE.WebGLRenderer();
     renderer.setSize(window.innerWidth, window.innerHeight);
 
-    var scene_camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 10000);
-    camera = new MapCamera(scene_camera, 300);
-    //camera = new CharacterCamera(scene_camera, 7);
-    scene.add(camera.getInternal());
+    scene_camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 10000);
+    map_camera = new MapCamera(scene_camera, 300);
+    var scene_camera_2 = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 10000);
+    var character_camera = new CharacterCamera(scene_camera_2, 7);
+    scene.add(map_camera.getInternal());
+    scene.add(character_camera.getInternal());
 
     document.body.appendChild(renderer.domElement);
+    
+    cur_cam = character_camera;
+    key_events["P"] = function(){
+        if (cur_cam === map_camera)
+        {
+            cur_cam = character_camera;
+        }
+        else
+        {
+            cur_cam = map_camera;
+        }
+    };
 }
 
 function animate() {
@@ -148,14 +184,14 @@ function animate() {
 
 var alpha = 0;
 function render() {
-    renderer.render(scene, camera.getInternal());
+    renderer.render(scene, cur_cam.getInternal());
     //mesh.rotation.z += 0.005;
     var pos_look_at;
     if (pc_tile !== undefined)
     {
         pos_look_at = pc_tile.getAbsolutePosition();
     }
-    camera.update(pos_look_at);
+    cur_cam.update(pos_look_at);
     var distance = 5;
     //alpha += 0.005;
     if (pc_tile !== undefined)
