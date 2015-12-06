@@ -44,9 +44,9 @@ function init() {
     var t_start = new Date().getTime();
     var random = new RandGenerator();
 
-    var terrain_size = new THREE.Vector2(200, 200);
+    var terrain_size = new THREE.Vector2(300, 300);
 
-    var terrainFunction3 = new NoiseFunction(1, 0.8079815409146249);
+    var terrainFunction3 = new NoiseFunction(1/*, 0.8669664210174233*/);
     
     var terrain_constructor = new TerrainConstructor(terrain_size, terrainFunction3);
 
@@ -56,30 +56,58 @@ function init() {
     var game_scene = new GameScene(scene);
     
     var terrain = terrain_constructor.getInfo();
+    console.log(diffTime(t_start) + ": Generated info");
 
     var points = terrain_constructor.generatePoints();
+
+    console.log(diffTime(t_start) + ": Generated points");
+
+    var full_path = [];
+    var paths = [];
     for (var i = 0; i < points.length; i++)
     {
         var cur = i;
         var next = (i + 1) % points.length;
         var path = terrain.aStar(points[cur], points[next]);
-        for (var x = 0; x < terrain_size.x*2; x++)
+        full_path.concat(path);
+        paths.push(path);
+        console.log(diffTime(t_start) + ": Path generated");
+    }
+    for (var i = 0; i < paths.length; i++)
+    {
+        var prev_pos = undefined;
+        for (var x = 0; x < paths[i].length; x++)
         {
-            for (var y = 0; y < terrain_size.y*2; y++)
+            var position = paths[i][x].pos;
+            var new_pos = position.clone();
+            var normal;
+            if (prev_pos !== undefined)
             {
-                var pos = new THREE.Vector2(Math.floor(x), Math.floor(y));
-                if(findInList(path, pos) !== undefined)
+                var direction = new_pos.clone().sub(prev_pos);
+                normal = new THREE.Vector2(direction.y, -direction.x);
+                var noise_value = noise.simplex2(0,x/10);
+                new_pos.add(normal.clone().multiplyScalar(noise_value));
+                new_pos = new THREE.Vector2(Math.floor(new_pos.x), Math.floor(new_pos.y));
+            }
+            prev_pos = position;
+            position = new_pos;
+            if (normal !== undefined)
+            {
+                var size = 2;
+                size += Math.abs(noise.simplex2(x/30,0)*8);
+                for (var ind = 0; ind < size; ind++)
                 {
-                    terrain.getTile(x,y).set_over_url(1);
+                    var pos = position.clone().add(normal.clone().multiplyScalar(ind-Math.floor(size/2)));
+                    var tile = terrain.getTile(Math.floor(pos.x), Math.floor(pos.y));
+                    if (tile.get_can_walk())
+                    {
+                        tile.set_over_url(1);
+                    }
                 }
             }
         }
     }
     console.log(diffTime(t_start) + ": Terrain paths created");
-
-    for (var i = 0; i < points.length; i++)
-    {
-    }
     
     function addTreeCallback(position)
     {
@@ -104,8 +132,8 @@ function init() {
     renderer.setSize(window.innerWidth, window.innerHeight);
 
     var scene_camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 10000);
-    //camera = new MapCamera(scene_camera, 200);
-    camera = new CharacterCamera(scene_camera, 7);
+    camera = new MapCamera(scene_camera, 300);
+    //camera = new CharacterCamera(scene_camera, 7);
     scene.add(camera.getInternal());
 
     document.body.appendChild(renderer.domElement);

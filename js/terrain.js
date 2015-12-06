@@ -30,13 +30,19 @@ TerrainTile.prototype.get_height = function()
     return this.terrain_.heights_[this.i_][this.j_];
 }
 
-function Terrain(size, urls, over_urls, heights, can_walks)
+TerrainTile.prototype.get_tile_type = function()
+{
+    return this.terrain_.tile_types_[Math.floor(this.i_ / 2)][Math.floor(this.j_ / 2)];
+}
+
+function Terrain(size, urls, over_urls, heights, can_walks, tile_types)
 {
     this.size_ = size;
     this.urls_ = urls;
     this.over_urls_ = over_urls;
     this.heights_ = heights;
     this.can_walks_ = can_walks;
+    this.tile_types_ = tile_types;
 }
 
 Terrain.prototype.getTile = function(i, j)
@@ -115,7 +121,7 @@ Terrain.prototype.aStar = function(init, end)
         function remove_one()
         {
             open_list.splice(low_ind, 1);
-            closed_list.push(cur_node);
+            closed_list.unshift(cur_node);
         };
         remove_one();
 
@@ -124,7 +130,11 @@ Terrain.prototype.aStar = function(init, end)
             for (var i = 0; i < neighbors.length; i++)
             {
                 var neighbor = neighbors[i];
-                if (findInList(closed_list, neighbor) !== undefined || !self.getTile(neighbor.x,neighbor.y).get_can_walk())
+                function check_exists()
+                {
+                    return !self.getTile(neighbor.x,neighbor.y).get_can_walk() || findInList(closed_list, neighbor) !== undefined;
+                }
+                if (check_exists())
                 {
                     continue;
                 }
@@ -132,9 +142,14 @@ Terrain.prototype.aStar = function(init, end)
                 var g_score;
                 function check_path()
                 {
-                    if (self.getTile(neighbor.x,neighbor.y).get_over_url() === 1)
+                    var tile = self.getTile(neighbor.x,neighbor.y);
+                    if (tile.get_over_url() === 1)
                     {
                         g_score = cur_node.g;
+                    }
+                    else if (tile.get_tile_type() === TerrainConstructor.tileType.SAND)
+                    {
+                        g_score = cur_node.g + 2;                        
                     }
                     else
                     {
@@ -142,28 +157,32 @@ Terrain.prototype.aStar = function(init, end)
                     }
                 }
                 check_path();
-                var best_score = false;
 
-                var equal_neighbor = findInList(open_list, neighbor);
-                if (equal_neighbor === undefined)
+                function updateScore()
                 {
-                    best_score = true;
-                    equal_neighbor = {};
-                    equal_neighbor.h = neighbor.lengthManhattan(end.pos);
-                    equal_neighbor.pos = neighbor;
-                    open_list.push(equal_neighbor);
-                }
-                else if (g_score < equal_neighbor.g)
-                {
-                    best_score = true;
-                }
+                    var best_score = false;
+                    var equal_neighbor = findInList(open_list, neighbor);
+                    if (equal_neighbor === undefined)
+                    {
+                        best_score = true;
+                        equal_neighbor = {};
+                        equal_neighbor.h = neighbor.lengthManhattan(end.pos)*0.5;
+                        equal_neighbor.pos = neighbor;
+                        open_list.push(equal_neighbor);
+                    }
+                    else if (g_score < equal_neighbor.g)
+                    {
+                        best_score = true;
+                    }
 
-                if (best_score)
-                {
-                    equal_neighbor.parent = cur_node;
-                    equal_neighbor.g = g_score;
-                    equal_neighbor.f = neighbor.g + neighbor.h;
+                    if (best_score)
+                    {
+                        equal_neighbor.parent = cur_node;
+                        equal_neighbor.g = g_score;
+                        equal_neighbor.f = neighbor.g + neighbor.h;
+                    }
                 }
+                updateScore();
             }
         }
         processNeighbors(getNeighborNodes(cur_node));
@@ -192,8 +211,8 @@ Terrain.prototype.initPaths = function(borderCallback)
         }
         return false;
     };
-    var iterations = 4;
-    for (var i = 0; i < 4; i++)
+    var iterations = 1;
+    for (var i = 0; i < iterations; i++)
     {
         var result = dilate(this.over_urls_, pre_check_fun, check_fun);
         for (var x = 0; x < result.length; x++)

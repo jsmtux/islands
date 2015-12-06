@@ -445,6 +445,6 @@ TerrainConstructor.prototype.getInfo = function(paths)
             ret_height[i][j] = this.heights_[x][y]*0.5;
         }
     }
-    return new Terrain(this.size_.clone().multiplyScalar(2), ret_url, ret_over_url, ret_can_walk, ret_height);
+    return new Terrain(this.size_.clone().multiplyScalar(2), ret_url, ret_over_url, ret_can_walk, ret_height, this.tile_types_);
 }
 

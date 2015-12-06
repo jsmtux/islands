@@ -20,7 +20,7 @@ Tile.prototype.setPosition = function(pos)
     if (this.mesh_)
     {
         var current_tile = this.scene_.getTerrain().getTile(Math.floor(pos.x),Math.floor(pos.y));
-        this.mesh_.position.z = 0.5 * current_tile.get_height() + this.offset_.z;
+        this.mesh_.position.z = current_tile.get_height() + this.offset_.z;
         this.mesh_.position.y = -this.position_.x + this.scene_.terrain_size_.y /2 + this.offset_.y;
         this.mesh_.position.x = this.position_.y - this.scene_.terrain_size_.x /2 + this.offset_.x;
     }
