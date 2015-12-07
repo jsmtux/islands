@@ -135,7 +135,13 @@ TerrainConstructor.prototype.setLake = function()
 TerrainConstructor.prototype.setCoast = function()
 {
     this.coast_line_ =
-            setBorder(this.tile_types_, TerrainConstructor.tileType.LAND, TerrainConstructor.tileType.SEA, TerrainConstructor.tileType.SAND);
+            setBorder(this.tile_types_, TerrainConstructor.tileType.LAND, TerrainConstructor.tileType.SEA, -1);
+    setBorder(this.tile_types_, TerrainConstructor.tileType.LAND, -1, TerrainConstructor.tileType.SAND);
+    for (var i = 0; i < this.coast_line_.length; i++)
+    {
+        var current = this.coast_line_[i];
+        this.tile_types_[current.x][current.y] = TerrainConstructor.tileType.SAND;
+    }
     return this.coast_line_;
 }
 

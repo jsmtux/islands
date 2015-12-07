@@ -44,7 +44,7 @@ CharacterCamera.prototype.constructor = CharacterCamera;
 
 CharacterCamera.prototype.update = function(look_at)
 {
-    this.camera_.position.z = look_at.z + this.distance_;
+    this.camera_.position.z = look_at.z + this.distance_ * 1.4;
     this.camera_.position.y = look_at.y + this.distance_;
     this.camera_.position.x = look_at.x;
     this.camera_.lookAt(look_at);

@@ -135,7 +135,15 @@ function init() {
 
     function addTreeCallback(position)
     {
-        var tile = game_scene.addJSONModel('models/tree.json', "images/tree.png", {scale:0.6, offset:new THREE.Vector3(0.4,-0.4,0.0), blocks:true});
+        var tile;
+        if (terrain.getTile(position.x, position.y).get_tile_type() === TerrainConstructor.tileType.LAND)
+        {
+            tile = game_scene.addJSONModel('models/tree.json', "images/tree.png", {scale:0.6, offset:new THREE.Vector3(0.4,-0.4,0.0), blocks:true});
+        }
+        else
+        {
+            var tile = game_scene.addJSONModel('models/rock.json', "images/rock.png", {scale:0.4, offset:new THREE.Vector3(0.4,-0.4,0.0), blocks:true});
+        }
         tile.setPosition(position);        
     }
    
@@ -147,7 +155,7 @@ function init() {
     
     console.log(diffTime(t_start) + ": Terrain mesh created");
     
-    pc_tile = game_scene.addAnimatedJSONModel('models/archer.json', "images/archer.png", {scale:0.12, offset:new THREE.Vector3(0.0,0.0,1.4)});
+    pc_tile = game_scene.addAnimatedJSONModel('models/archer.json', "images/archer.png", {scale:0.1, offset:new THREE.Vector3(0.0,0.0,1.4)});
     pc_tile.setPosition(character_position.pos);
     
     console.log(diffTime(t_start) + ": Elements added");
@@ -203,28 +211,28 @@ function render() {
         if (key_states.UP)
         {
             pc_tile.setCurrentAnimation(6);
-            tile_pos.x += 0.2;
+            tile_pos.x += 0.05;
             pc_tile.setRotation(new THREE.Vector3(0,0,0));
         }
         if (key_states.DOWN)
         {
             pc_tile.setCurrentAnimation(6);
-            tile_pos.x -= 0.2;
+            tile_pos.x -= 0.05;
             pc_tile.setRotation(new THREE.Vector3(0,Math.PI,0));
         }
         if (key_states.LEFT)
         {
             pc_tile.setCurrentAnimation(6);
-            tile_pos.y += 0.2;
+            tile_pos.y += 0.05;
             pc_tile.setRotation(new THREE.Vector3(0,Math.PI / 2,0));
         }
         if (key_states.RIGHT)
         {
             pc_tile.setCurrentAnimation(6);
-            tile_pos.y -= 0.2;
+            tile_pos.y -= 0.05;
             pc_tile.setRotation(new THREE.Vector3(0,-Math.PI / 2,0));
         }
-        pc_tile.update(0.02);
+        pc_tile.update(0.015);
         if (game_scene.getCanWalk(tile_pos))
         {
             pc_tile.setPosition(tile_pos);
