@@ -1,5 +1,6 @@
 var cur_cam;
 var scene_camera, map_camera;
+var game_scene;
 var scene, renderer;
 
 var key_codes = {
@@ -55,7 +56,7 @@ function init() {
     var t_start = new Date().getTime();
     var random = new RandGenerator();
 
-    var terrain_size = new THREE.Vector2(300, 300);
+    var terrain_size = new THREE.Vector2(150, 150);
 /*0.5252345739863813 lake*/
     var terrainFunction3 = new NoiseFunction(1/*, 0.8669664210174233*/);
     
@@ -64,12 +65,13 @@ function init() {
     console.log(diffTime(t_start) + ": Base Terrain created");
     
     scene = new THREE.Scene();
-    var game_scene = new GameScene(scene);
+    game_scene = new GameScene(scene);
     
     var terrain = terrain_constructor.getInfo();
     console.log(diffTime(t_start) + ": Generated info");
 
     var points = terrain_constructor.generatePoints();
+    var character_position = points[0];
 
     console.log(diffTime(t_start) + ": Generated points");
 
@@ -87,7 +89,7 @@ function init() {
     
     function addBush(position)
     {
-        var tile = game_scene.addJSONModel('models/bush.json', "images/bush.png", {scale:0.1, offset:new THREE.Vector3(0.4,-0.4,0.0), transparent:true});
+        var tile = game_scene.addJSONModel('models/bush.json', "images/bush.png", {scale:0.1, offset:new THREE.Vector3(0.4,-0.4,0.3), transparent:true});
         tile.setPosition(position);        
     }
 
@@ -133,7 +135,7 @@ function init() {
 
     function addTreeCallback(position)
     {
-        var tile = game_scene.addJSONModel('models/tree.json', "images/tree.png", {scale:0.6, offset:new THREE.Vector3(0.4,-0.4,0.0)});
+        var tile = game_scene.addJSONModel('models/tree.json', "images/tree.png", {scale:0.6, offset:new THREE.Vector3(0.4,-0.4,0.0), blocks:true});
         tile.setPosition(position);        
     }
    
@@ -146,7 +148,7 @@ function init() {
     console.log(diffTime(t_start) + ": Terrain mesh created");
     
     pc_tile = game_scene.addAnimatedJSONModel('models/archer.json', "images/archer.png", {scale:0.12, offset:new THREE.Vector3(0.0,0.0,1.4)});
-    pc_tile.setPosition(new THREE.Vector2(170,50));
+    pc_tile.setPosition(character_position.pos);
     
     console.log(diffTime(t_start) + ": Elements added");
 
@@ -223,6 +225,9 @@ function render() {
             pc_tile.setRotation(new THREE.Vector3(0,-Math.PI / 2,0));
         }
         pc_tile.update(0.02);
-        pc_tile.setPosition(tile_pos);  
+        if (game_scene.getCanWalk(tile_pos))
+        {
+            pc_tile.setPosition(tile_pos);
+        }
     }
 }

@@ -437,7 +437,7 @@ TerrainConstructor.prototype.getInfo = function(paths)
                 console.log("unhandled case for " + ground_types.length + "different ground types");
             }
             
-            var can_walk = [TerrainConstructor.tileType.LAND, TerrainConstructor.tileType.SAND].indexOf(this.tile_types_[x][y]) !== -1;
+            var can_walk = [TerrainConstructor.tileType.LAND, TerrainConstructor.tileType.SAND].indexOf(this.tile_types_[x][y]) !== -1 ? true : false;
             
             ret_url[i][j] = index;
             ret_over_url[i][j] = 0;

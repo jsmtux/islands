@@ -1,10 +1,11 @@
-function Tile(scene)
+function Tile(scene, block)
 {
     this.position_ = new THREE.Vector2(0,0);
     this.rotation_ = new THREE.Vector3(0,0,0);
     this.mesh_;
     this.scene_ = scene;
     this.offset_ = new THREE.Vector3(0,0,0);
+    this.block_ = block;
 }
 
 Tile.prototype.initialize = function(mesh)
@@ -20,7 +21,7 @@ Tile.prototype.setPosition = function(pos)
     if (this.mesh_)
     {
         var current_tile = this.scene_.getTerrain().getTile(Math.floor(pos.x),Math.floor(pos.y));
-        this.mesh_.position.z = current_tile.get_height() + this.offset_.z;
+        this.mesh_.position.z = 0.5*current_tile.get_height() + this.offset_.z;
         this.mesh_.position.y = -this.position_.x + this.scene_.terrain_size_.y /2 + this.offset_.y;
         this.mesh_.position.x = this.position_.y - this.scene_.terrain_size_.x /2 + this.offset_.x;
     }
@@ -28,7 +29,7 @@ Tile.prototype.setPosition = function(pos)
 
 Tile.prototype.getPosition = function()
 {
-    return this.position_;
+    return this.position_.clone();
 }
 
 Tile.prototype.setRotation = function(rotation)
@@ -62,9 +63,14 @@ Tile.prototype.setOffset = function(offset)
     this.setPosition(this.getPosition());
 }
 
-function AnimatedTile(scene)
+Tile.prototype.get_blocks = function()
 {
-    Tile.call(this, scene);
+    return this.block_;
+}
+
+function AnimatedTile(scene, block)
+{
+    Tile.call(this, scene, block);
     this.animations_ = [];
     this.current_animation_;
 }
@@ -92,6 +98,7 @@ AnimatedTile.prototype.update = function(time)
 
 function GameScene(three_scene)
 {
+    this.static_tiles_ = [];
     this.three_scene_ = three_scene;
     this.terrain_info_;
     this.terrain_size_;
@@ -156,10 +163,36 @@ GameScene.prototype.addInternalJSONModel = function(ret, model_path, model_textu
 
 GameScene.prototype.addJSONModel = function(model_path, model_texture, modifiers)
 {
-    return this.addInternalJSONModel(new Tile(this), model_path, model_texture, modifiers, false);
+    var block = modifiers !== undefined && modifiers.blocks === true;
+    var new_tile = new Tile(this, block);
+    this.static_tiles_.push(new_tile)
+    return this.addInternalJSONModel(new_tile, model_path, model_texture, modifiers, false);
 }
 
 GameScene.prototype.addAnimatedJSONModel = function(model_path, model_texture, modifiers)
 {
-    return this.addInternalJSONModel(new AnimatedTile(this), model_path, model_texture, modifiers, true);
+    var block = modifiers !== undefined && modifiers.blocks === true;
+    var new_tile = new AnimatedTile(this, block);
+    return this.addInternalJSONModel(new_tile, model_path, model_texture, modifiers, true);
+}
+
+GameScene.prototype.getCanWalk = function(position)
+{
+    var ret = this.terrain_info_.getTile(Math.floor(position.x), Math.floor(position.y)).get_can_walk();
+    if (ret === true)
+    {
+        for (var i = 0; i < this.static_tiles_.length; i++)
+        {
+            var pos_x = Math.floor(position.x);
+            var pos_y = Math.floor(position.y);
+            if (this.static_tiles_[i].getPosition().equals(new THREE.Vector2(pos_x, pos_y)))
+            {
+                if(this.static_tiles_[i].get_blocks())
+                {
+                    ret = false;
+                }
+            }
+        }
+    }
+    return ret;
 }

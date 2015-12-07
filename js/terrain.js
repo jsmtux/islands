@@ -35,7 +35,7 @@ TerrainTile.prototype.get_tile_type = function()
     return this.terrain_.tile_types_[Math.floor(this.i_ / 2)][Math.floor(this.j_ / 2)];
 }
 
-function Terrain(size, urls, over_urls, heights, can_walks, tile_types)
+function Terrain(size, urls, over_urls, can_walks, heights, tile_types)
 {
     this.size_ = size;
     this.urls_ = urls;
