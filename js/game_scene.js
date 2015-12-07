@@ -1,4 +1,4 @@
-function Tile(scene, block)
+function Tile(scene, name, block)
 {
     this.position_ = new THREE.Vector2(0,0);
     this.rotation_ = new THREE.Vector3(0,0,0);
@@ -6,6 +6,7 @@ function Tile(scene, block)
     this.scene_ = scene;
     this.offset_ = new THREE.Vector3(0,0,0);
     this.block_ = block;
+    this.name_ = name;
 }
 
 Tile.prototype.initialize = function(mesh)
@@ -66,6 +67,11 @@ Tile.prototype.setOffset = function(offset)
 Tile.prototype.get_blocks = function()
 {
     return this.block_;
+}
+
+Tile.prototype.get_name = function()
+{
+    return this.name_;
 }
 
 function AnimatedTile(scene, block)
@@ -161,18 +167,19 @@ GameScene.prototype.addInternalJSONModel = function(ret, model_path, model_textu
     return ret;
 }
 
-GameScene.prototype.addJSONModel = function(model_path, model_texture, modifiers)
+GameScene.prototype.addJSONModel = function(name, model_path, model_texture, modifiers)
 {
     var block = modifiers !== undefined && modifiers.blocks === true;
-    var new_tile = new Tile(this, block);
-    this.static_tiles_.push(new_tile)
+    var new_tile = new Tile(this, name, block);
+    this.static_tiles_.push(new_tile);
     return this.addInternalJSONModel(new_tile, model_path, model_texture, modifiers, false);
 }
 
-GameScene.prototype.addAnimatedJSONModel = function(model_path, model_texture, modifiers)
+GameScene.prototype.addAnimatedJSONModel = function(name, model_path, model_texture, modifiers)
 {
     var block = modifiers !== undefined && modifiers.blocks === true;
-    var new_tile = new AnimatedTile(this, block);
+    var new_tile = new AnimatedTile(this, name, block);
+    this.static_tiles_.push(new_tile);
     return this.addInternalJSONModel(new_tile, model_path, model_texture, modifiers, true);
 }
 
@@ -192,6 +199,21 @@ GameScene.prototype.getCanWalk = function(position)
                     ret = false;
                 }
             }
+        }
+    }
+    return ret;
+}
+
+GameScene.prototype.getCollidingTiles = function(position)
+{
+    var ret = [];
+    for (var i = 0; i < this.static_tiles_.length; i++)
+    {
+        var pos_x = Math.floor(position.x);
+        var pos_y = Math.floor(position.y);
+        if (this.static_tiles_[i].getPosition().equals(new THREE.Vector2(pos_x, pos_y)))
+        {
+            ret.push(this.static_tiles_[i]);
         }
     }
     return ret;

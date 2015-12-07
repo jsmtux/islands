@@ -56,9 +56,9 @@ function init() {
     var t_start = new Date().getTime();
     var random = new RandGenerator();
 
-    var terrain_size = new THREE.Vector2(150, 150);
+    var terrain_size = new THREE.Vector2(200, 200);
 /*0.5252345739863813 lake*/
-    var terrainFunction3 = new NoiseFunction(1/*, 0.8669664210174233*/);
+    var terrainFunction3 = new NoiseFunction(1, 0.061479425290599465);
     
     var terrain_constructor = new TerrainConstructor(terrain_size, terrainFunction3);
 
@@ -89,8 +89,11 @@ function init() {
     
     function addBush(position)
     {
-        var tile = game_scene.addJSONModel('models/bush.json', "images/bush.png", {scale:0.1, offset:new THREE.Vector3(0.4,-0.4,0.3), transparent:true});
-        tile.setPosition(position);        
+        if (game_scene.getCollidingTiles(position).length === 0)
+        {
+            var tile = game_scene.addJSONModel('bush','models/bush.json', "images/bush.png", {scale:0.1, offset:new THREE.Vector3(0.4,-0.4,0.3), transparent:true});
+            tile.setPosition(position);
+        }
     }
 
     for (var i = 0; i < paths.length; i++)
@@ -138,11 +141,11 @@ function init() {
         var tile;
         if (terrain.getTile(position.x, position.y).get_tile_type() === TerrainConstructor.tileType.LAND)
         {
-            tile = game_scene.addJSONModel('models/tree.json', "images/tree.png", {scale:0.6, offset:new THREE.Vector3(0.4,-0.4,0.0), blocks:true});
+            tile = game_scene.addJSONModel('tree', 'models/tree.json', "images/tree.png", {scale:0.6, offset:new THREE.Vector3(0.4,-0.4,0.0), blocks:true});
         }
         else
         {
-            var tile = game_scene.addJSONModel('models/rock.json', "images/rock.png", {scale:0.4, offset:new THREE.Vector3(0.4,-0.4,0.0), blocks:true});
+            var tile = game_scene.addJSONModel('rock','models/rock.json', "images/rock.png", {scale:0.4, offset:new THREE.Vector3(0.4,-0.4,0.0), blocks:true});
         }
         tile.setPosition(position);        
     }
@@ -155,7 +158,7 @@ function init() {
     
     console.log(diffTime(t_start) + ": Terrain mesh created");
     
-    pc_tile = game_scene.addAnimatedJSONModel('models/archer.json', "images/archer.png", {scale:0.1, offset:new THREE.Vector3(0.0,0.0,1.4)});
+    pc_tile = game_scene.addAnimatedJSONModel("pc", 'models/archer.json', "images/archer.png", {scale:0.1, offset:new THREE.Vector3(0.0,0.0,1.4)});
     pc_tile.setPosition(character_position.pos);
     
     console.log(diffTime(t_start) + ": Elements added");
@@ -193,6 +196,7 @@ function animate() {
 }
 
 var alpha = 0;
+var prev_bush = undefined;
 function render() {
     renderer.render(scene, cur_cam.getInternal());
     //mesh.rotation.z += 0.005;
@@ -236,6 +240,21 @@ function render() {
         if (game_scene.getCanWalk(tile_pos))
         {
             pc_tile.setPosition(tile_pos);
+        }
+        var near_elements = game_scene.getCollidingTiles(tile_pos);
+        for (var i = 0; i < near_elements.length; i++)
+        {
+            if (near_elements[i].get_name() === 'bush')
+            {
+                if(prev_bush === undefined || prev_bush !== near_elements[i])
+                {
+                    prev_bush = near_elements[i];
+                    if (Math.random() > 0.7)
+                    {
+                        console.log("launch monster fight");
+                    }
+                }
+            }
         }
     }
 }
