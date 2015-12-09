@@ -1,6 +1,10 @@
 html {
     font-family: Tahoma, Geneva, sans-serif;
     font-size: 150%;
+    -moz-user-select: none; 
+    -khtml-user-select: none; 
+    -webkit-user-select: none; 
+    -o-user-select: none; 
 }
 div, span {
 }

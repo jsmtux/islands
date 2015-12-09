@@ -99,9 +99,11 @@ PC.prototype.chooseMonster = function(cb)
     for (var i in this.units_)
     {
         var unit = {};
-        var self = this;
-        var name = function(unit_id){return self.units_[unit_id].type_}(i);
-        unit.getName = function(){return name;};
+        var index = i;
+        function createFunction(i) {
+            return function(){return self.units_[i].type_;};
+        }
+        unit.getName = createFunction(i);
         actions.push(unit);
     }
     

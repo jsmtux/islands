@@ -17,7 +17,7 @@ function UnitDisplay(parent_element, right_aligned)
 
         self.progress_bar_ = new ProgressBar(container_element_player);
         
-        new ImageElement(row_element_player, "html_images/389.gif");
+        self.image_element_ = new ImageElement(row_element_player);
     }
     if (right_aligned)
     {
@@ -35,6 +35,7 @@ UnitDisplay.prototype.update = function(unit)
 {
     this.progress_bar_.setProgress(unit.getHealthPercentage());
     this.name_element_.setText(unit.getName());
+    this.image_element_.setImage(unit.getImage());
 }
 
 function Battle(player_a, player_b, parent_element)

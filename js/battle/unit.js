@@ -7,6 +7,7 @@ function Unit(unitDefinition, name)
     this.defense_ = unitDefinition.defense_;
     this.attack_ = unitDefinition.attack_;
     this.speed_ = unitDefinition.speed_;
+    this.image_ = unitDefinition.image_;
     this.stats_ ={
         "health":this.energy_,
         "defense":0,
@@ -40,4 +41,9 @@ Unit.prototype.getName = function()
 Unit.prototype.getHealthPercentage = function()
 {
     return (this.stats_.health / this.energy_) * 100;
+}
+
+Unit.prototype.getImage = function()
+{
+    return this.image_;
 }

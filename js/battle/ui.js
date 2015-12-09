@@ -169,13 +169,18 @@ TextElement.prototype.setText = function(text)
 function ImageElement(parent_element, image_path)
 {
     this.setElement("div");
-    var img_element = document.createElement("img");
-    img_element.src = image_path;
-    this.element_.appendChild(img_element);
+    this.img_element_ = document.createElement("img");
+    this.img_element_.src = image_path;
+    this.element_.appendChild(this.img_element_);
     this.setParent(parent_element);
 }
 
 ImageElement.prototype = Object.create(Widget.prototype);
 ImageElement.prototype.constructor = ImageElement;
+
+ImageElement.prototype.setImage = function(path)
+{
+    this.img_element_.src = path;
+}
 
 

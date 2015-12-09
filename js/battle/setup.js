@@ -68,14 +68,18 @@ function start_battle(){
 	var basic_attack = new AttackAction("basic atk", 5);
 	var defense_attack = new DefenseAttackAction("basic def atk", 0.05);
 
-	var base_unit = new UnitDefinition("BaseMonster", 25, 2, 1, 0.2);
+	var base_unit = new UnitDefinition("TreeMonster", 25, 2, 1, 0.2, "html_images/389.gif");
 	base_unit.addAction(basic_attack);
 	base_unit.addAction(defense_attack);
+        
+        var unit_2 = new UnitDefinition("GrassMonster", 25, 2, 1, 0.2, "html_images/650.gif");
+        unit_2.addAction(basic_attack);
+        unit_2.addAction(defense_attack);
 	
 	var unit_a = new Unit(base_unit);
-	var unit_b = new Unit(base_unit);
+	var unit_b = new Unit(unit_2);
 	var unit_c = new Unit(base_unit);
-	var unit_d = new Unit(base_unit);
+	var unit_d = new Unit(unit_2);
 
 	player_a.units_.push(unit_a);
 	player_a.units_.push(unit_d);
