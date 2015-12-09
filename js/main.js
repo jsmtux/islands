@@ -252,6 +252,7 @@ function render() {
                     if (Math.random() > 0.7)
                     {
                         console.log("launch monster fight");
+                        start_battle();
                     }
                 }
             }
