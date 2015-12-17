@@ -48,6 +48,11 @@ function BodyElement(body_div)
 BodyElement.prototype = Object.create(Widget.prototype);
 BodyElement.prototype.constructor = BodyElement;
 
+BodyElement.prototype.remove = function()
+{
+    console.log("root element cannot be removed");
+}
+
 function EmptyElement(parent_element)
 {
     this.setElement("div");
@@ -73,12 +78,21 @@ MainWindow.prototype.getRow = function()
 
 function ContainerElement(parent_element)
 {
-    this.setElement("div", "container-element");
+    this.setElement("div", "");
     this.setParent(parent_element);
 }
 
 ContainerElement.prototype = Object.create(Widget.prototype);
 ContainerElement.prototype.constructor = ContainerElement;
+
+function PanelElement(parent_element)
+{
+    this.setElement("div", "panel-element");
+    this.setParent(parent_element);
+}
+
+PanelElement.prototype = Object.create(Widget.prototype);
+PanelElement.prototype.constructor = ContainerElement;
 
 function ProgressBar(parent_element)
 {

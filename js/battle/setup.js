@@ -1,9 +1,11 @@
-function start_battle(){
+function start_battle(game_handler){
 
+    game_handler.setCurrentState("");
     var body_element = new BodyElement(document.body);
+    var container_element = new ContainerElement(body_element);
     
-	function showActions(parent_element, text, list, cb)
-	{
+    function showActions(parent_element, text, list, cb)
+    {
         var actions_window = new MainWindow(parent_element);
         new TextElement(actions_window.getRow(), text);
         var button_box = actions_window.getRow();
@@ -33,7 +35,7 @@ function start_battle(){
             new TextElement(button4, list[3]);
         }
         return actions_window;
-	}
+    }
     
     function ActionControls(parent_element)
     {
@@ -56,43 +58,50 @@ function start_battle(){
     {
         if (this.element_)
         {
-            this.element_.remove()
+            this.element_.remove();
         }
         this.element_ = undefined;
     }
 
-    action_contols = new ActionControls(body_element);
-	var player_a = new PC(function(list, cb){action_contols.chooseAction(list, cb)});
-	var player_b = new NPC();
+    action_contols = new ActionControls(container_element);
+    var player_a = new PC(function(list, cb){action_contols.chooseAction(list, cb)});
+    var player_b = new NPC();
 
-	var basic_attack = new AttackAction("basic atk", 5);
-	var defense_attack = new DefenseAttackAction("basic def atk", 0.05);
+    var basic_attack = new AttackAction("basic atk", 5);
+    var defense_attack = new DefenseAttackAction("basic def atk", 0.05);
 
-	var base_unit = new UnitDefinition("TreeMonster", 25, 2, 1, 0.2, "html_images/389.gif");
-	base_unit.addAction(basic_attack);
-	base_unit.addAction(defense_attack);
-        
-        var unit_2 = new UnitDefinition("GrassMonster", 25, 2, 1, 0.2, "html_images/650.gif");
-        unit_2.addAction(basic_attack);
-        unit_2.addAction(defense_attack);
+    var base_unit = new UnitDefinition("TreeMonster", 25, 2, 1, 0.2, "html_images/389.gif");
+    base_unit.addAction(basic_attack);
+    base_unit.addAction(defense_attack);
+
+    var unit_2 = new UnitDefinition("GrassMonster", 25, 2, 1, 0.2, "html_images/650.gif");
+    unit_2.addAction(basic_attack);
+    unit_2.addAction(defense_attack);
+
+    var unit_a = new Unit(base_unit);
+    var unit_b = new Unit(unit_2);
+    var unit_c = new Unit(base_unit);
+    var unit_d = new Unit(unit_2);
+
+    player_a.units_.push(unit_a);
+    player_a.units_.push(unit_d);
+    player_b.units_.push(unit_b);
+    player_b.units_.push(unit_c);
 	
-	var unit_a = new Unit(base_unit);
-	var unit_b = new Unit(unit_2);
-	var unit_c = new Unit(base_unit);
-	var unit_d = new Unit(unit_2);
-
-	player_a.units_.push(unit_a);
-	player_a.units_.push(unit_d);
-	player_b.units_.push(unit_b);
-	player_b.units_.push(unit_c);
-	
-    var battle = new Battle(player_a, player_b, body_element);
+    var battle = new Battle(player_a, player_b, container_element);
     
-    
-	function iterate()
-	{
-	    battle.iteration(iterate);
-	}		
+    function iterate(ended)
+    {
+        if (ended)
+        {
+            game_handler.setCurrentState("map");
+            container_element.remove();
+        }
+        else
+        {
+            battle.iteration(iterate);
+        }
+    }		
 
-	iterate();
+    iterate(false);
 }

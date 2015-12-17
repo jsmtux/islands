@@ -1,5 +1,5 @@
-var cur_cam;
-var scene_camera, map_camera;
+var game;
+
 var game_scene;
 var scene, renderer;
 
@@ -26,7 +26,6 @@ function handleKeyDown(event)
     key_states[key_codes[event.keyCode]] = true;
     if (key_codes[event.keyCode] !== undefined && key_events[key_codes[event.keyCode]] !== undefined)
     {
-        console.log("defined callback!!");
         key_events[key_codes[event.keyCode]]();
     }
 }
@@ -58,7 +57,7 @@ function init() {
 
     var terrain_size = new THREE.Vector2(200, 200);
 /*0.5252345739863813 lake*/
-    var terrainFunction3 = new NoiseFunction(1, 0.061479425290599465);
+    var terrainFunction3 = new NoiseFunction(1/*, 0.061479425290599465*/);
     
     var terrain_constructor = new TerrainConstructor(terrain_size, terrainFunction3);
 
@@ -165,47 +164,88 @@ function init() {
 
     renderer = new THREE.WebGLRenderer();
     renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
 
-    scene_camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 10000);
-    map_camera = new MapCamera(scene_camera, 300);
+    var scene_camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 10000);
+    var map_camera = new MapCamera(scene_camera, 300);
     var scene_camera_2 = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 10000);
     var character_camera = new CharacterCamera(scene_camera_2, 7);
     scene.add(map_camera.getInternal());
     scene.add(character_camera.getInternal());
-
-    document.body.appendChild(renderer.domElement);
     
-    cur_cam = character_camera;
+    game = new Game();
+    game.addGameState(new MapGameState(map_camera, character_camera), "map");
+    game.setCurrentState("map");
+}
+
+function Game()
+{
+    this.game_states_ = {}
+    this.current_state_;
+}
+
+Game.prototype.addGameState = function(game_state, name)
+{
+    this.game_states_[name] = game_state;
+}
+
+Game.prototype.setCurrentState = function(name)
+{
+    console.log("setting current state to " + name);
+    this.current_state_ = name;
+}
+
+Game.prototype.update = function()
+{
+    var cur_state = this.game_states_[this.current_state_];
+    if (cur_state !== undefined)
+    {
+        cur_state.update();
+    }
+}
+
+function GameState()
+{
+}
+
+GameState.prototype.update = function()
+{
+    console.log("Unimplemented update function on gamestate");
+}
+
+function MapGameState(map_camera, character_camera)
+{
+    this.prev_bush_;
+    this.map_camera_ = map_camera;
+    this.character_camera_ = character_camera;
+    this.cur_cam_ = this.character_camera_;
+    
+    var self = this;
     key_events["P"] = function(){
-        if (cur_cam === map_camera)
+        if (self.cur_cam_ === self.map_camera_)
         {
-            cur_cam = character_camera;
+            self.cur_cam_ = self.character_camera_;
         }
         else
         {
-            cur_cam = map_camera;
+            self.cur_cam_ = self.map_camera_;
         }
     };
 }
 
-function animate() {
+MapGameState.prototype = Object.create(GameState.prototype);
+MapGameState.prototype.constructor = MapGameState;
 
-    requestAnimationFrame(animate);
-    render();
-
-}
-
-var alpha = 0;
-var prev_bush = undefined;
-function render() {
-    renderer.render(scene, cur_cam.getInternal());
+GameState.prototype.update = function()
+{
+    renderer.render(scene, this.cur_cam_.getInternal());
     //mesh.rotation.z += 0.005;
     var pos_look_at;
     if (pc_tile !== undefined)
     {
         pos_look_at = pc_tile.getAbsolutePosition();
     }
-    cur_cam.update(pos_look_at);
+    this.cur_cam_.update(pos_look_at);
     var distance = 5;
     //alpha += 0.005;
     if (pc_tile !== undefined)
@@ -246,16 +286,27 @@ function render() {
         {
             if (near_elements[i].get_name() === 'bush')
             {
-                if(prev_bush === undefined || prev_bush !== near_elements[i])
+                if(this.prev_bush_ === undefined || this.prev_bush_ !== near_elements[i])
                 {
-                    prev_bush = near_elements[i];
+                    this.prev_bush_ = near_elements[i];
                     if (Math.random() > 0.7)
                     {
                         console.log("launch monster fight");
-                        start_battle();
+                        start_battle(game);
                     }
                 }
             }
         }
     }
+}
+
+function animate() {
+
+    requestAnimationFrame(animate);
+    render();
+
+}
+
+function render() {
+    game.update();
 }

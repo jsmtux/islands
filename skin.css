@@ -21,7 +21,7 @@ img {
     border-image: url("html_images/panel_brown.png") 20% fill repeat;
     border-width: 20px;
 }
-.container-element {
+.panel-element {
     border-image: url("html_images/panelInset_beige.png") 20% fill repeat;
     border-width: 20px;
 }

@@ -11,7 +11,7 @@ function UnitDisplay(parent_element, right_aligned)
     
     function add_info()
     {
-        var container_element_player = new ContainerElement(row_element_player);
+        var container_element_player = new PanelElement(row_element_player);
         self.name_element_ = new TextElement(container_element_player);
         new TextElement(container_element_player, "health");
 
@@ -52,21 +52,20 @@ Battle.prototype.iteration = function(cb)
     var unit_b = this.player_b_.getCurrentUnit();
     if (unit_a && unit_b)
     {
-		this.updateView(unit_a, unit_b);
-        ret = true;
+        this.updateView(unit_a, unit_b);
         var this_ptr = this;
         this.player_a_.iteration(unit_b, function()
         {
             this_ptr.player_b_.iteration(unit_a, function()
             {
                 this_ptr.updateView(unit_a, unit_b);
-                cb();
-            })
+                cb(false);
+            });
         });
     }
     else
     {
-        console.log("battle ended");
+        cb(true)
     }
 }
 
