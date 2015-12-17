@@ -1,4 +1,4 @@
-function start_battle(game_handler){
+function start_battle(game_handler, player_a_units){
 
     game_handler.setCurrentState("");
     var body_element = new BodyElement(document.body);
@@ -63,28 +63,18 @@ function start_battle(game_handler){
         this.element_ = undefined;
     }
 
-    action_contols = new ActionControls(container_element);
-    var player_a = new PC(function(list, cb){action_contols.chooseAction(list, cb)});
+    action_controls = new ActionControls(container_element);
+    var player_a = new PC(function(list, cb){action_controls.chooseAction(list, cb)});
     var player_b = new NPC();
 
-    var basic_attack = new AttackAction("basic atk", 5);
-    var defense_attack = new DefenseAttackAction("basic def atk", 0.05);
+    var unit_b = new Unit(units.tree_monster);
+    var unit_c = new Unit(units.grass_monster);
+    
+    for (var i = 0; i < player_a_units.length; i++)
+    {
+        player_a.units_.push(player_a_units[i]);
+    }
 
-    var base_unit = new UnitDefinition("TreeMonster", 25, 2, 1, 0.2, "html_images/389.gif");
-    base_unit.addAction(basic_attack);
-    base_unit.addAction(defense_attack);
-
-    var unit_2 = new UnitDefinition("GrassMonster", 25, 2, 1, 0.2, "html_images/650.gif");
-    unit_2.addAction(basic_attack);
-    unit_2.addAction(defense_attack);
-
-    var unit_a = new Unit(base_unit);
-    var unit_b = new Unit(unit_2);
-    var unit_c = new Unit(base_unit);
-    var unit_d = new Unit(unit_2);
-
-    player_a.units_.push(unit_a);
-    player_a.units_.push(unit_d);
     player_b.units_.push(unit_b);
     player_b.units_.push(unit_c);
 	

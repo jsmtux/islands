@@ -220,6 +220,11 @@ function MapGameState(map_camera, character_camera)
     this.character_camera_ = character_camera;
     this.cur_cam_ = this.character_camera_;
     
+    
+    var unit_a = new Unit(units.grass_monster);
+    var unit_d = new Unit(units.tree_monster);
+    this.pc_units_ = [unit_a, unit_d];
+    
     var self = this;
     key_events["P"] = function(){
         if (self.cur_cam_ === self.map_camera_)
@@ -236,7 +241,7 @@ function MapGameState(map_camera, character_camera)
 MapGameState.prototype = Object.create(GameState.prototype);
 MapGameState.prototype.constructor = MapGameState;
 
-GameState.prototype.update = function()
+MapGameState.prototype.update = function()
 {
     renderer.render(scene, this.cur_cam_.getInternal());
     //mesh.rotation.z += 0.005;
@@ -292,7 +297,7 @@ GameState.prototype.update = function()
                     if (Math.random() > 0.7)
                     {
                         console.log("launch monster fight");
-                        start_battle(game);
+                        start_battle(game, this.pc_units_);
                     }
                 }
             }
