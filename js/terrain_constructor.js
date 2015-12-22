@@ -1,4 +1,4 @@
-function TerrainConstructor(size, island_function)
+function TerrainConstructor(size, island_function, coast_width)
 {
     this.size_ = size.clone().divideScalar(2);
     this.island_function_ = island_function;
@@ -73,7 +73,7 @@ function TerrainConstructor(size, island_function)
     }
     
     this.setLake();
-    this.setCoast();
+    this.setCoast(coast_width);
     this.initHeight();
     this.getProperties();
 }
@@ -132,15 +132,23 @@ TerrainConstructor.prototype.setLake = function()
     flood_fill(this.tile_types_, 0, 0, TerrainConstructor.tileType.WATER, TerrainConstructor.tileType.SEA);
 }
 
-TerrainConstructor.prototype.setCoast = function()
+TerrainConstructor.prototype.setCoast = function(width)
 {
-    this.coast_line_ =
-            setBorder(this.tile_types_, TerrainConstructor.tileType.LAND, TerrainConstructor.tileType.SEA, -1);
-    setBorder(this.tile_types_, TerrainConstructor.tileType.LAND, -1, TerrainConstructor.tileType.SAND);
-    for (var i = 0; i < this.coast_line_.length; i++)
+    if (width > 1)
     {
-        var current = this.coast_line_[i];
-        this.tile_types_[current.x][current.y] = TerrainConstructor.tileType.SAND;
+        this.coast_line_ =
+                setBorder(this.tile_types_, TerrainConstructor.tileType.LAND, TerrainConstructor.tileType.SEA, -1);
+        setBorder(this.tile_types_, TerrainConstructor.tileType.LAND, -1, TerrainConstructor.tileType.SAND);
+        for (var i = 0; i < this.coast_line_.length; i++)
+        {
+            var current = this.coast_line_[i];
+            this.tile_types_[current.x][current.y] = TerrainConstructor.tileType.SAND;
+        }
+    }
+    else
+    {
+        this.coast_line_ =
+                setBorder(this.tile_types_, TerrainConstructor.tileType.LAND, TerrainConstructor.tileType.SEA, TerrainConstructor.tileType.SAND);
     }
     return this.coast_line_;
 }

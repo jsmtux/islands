@@ -24,6 +24,23 @@ Game.prototype.update = function()
     }
 }
 
+Game.prototype.handleKeyDown = function(key_code)
+{
+    if (this.game_states_[this.current_state_])
+    {
+        var state_key_events = this.game_states_[this.current_state_].key_events_;
+        if (key_code !== undefined && state_key_events[key_code] !== undefined)
+        {
+            state_key_events[key_code]();
+        }
+    }
+}
+
+Game.prototype.createCamera = function()
+{
+    return new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 10000);
+}
+
 function GameState()
 {
 }

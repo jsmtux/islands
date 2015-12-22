@@ -1,4 +1,4 @@
-function Tile(scene, name, block)
+function Tile(scene, name, block, rotation_offset)
 {
     this.position_ = new THREE.Vector2(0,0);
     this.rotation_ = new THREE.Vector3(0,0,0);
@@ -7,6 +7,14 @@ function Tile(scene, name, block)
     this.offset_ = new THREE.Vector3(0,0,0);
     this.block_ = block;
     this.name_ = name;
+    if (rotation_offset === undefined)
+    {
+        this.rotation_offset_ = new THREE.Vector3(Math.PI/2, 0, 0);
+    }
+    else
+    {
+        this.rotation_offset_ = rotation_offset;
+    }
 }
 
 Tile.prototype.initialize = function(mesh)
@@ -21,8 +29,16 @@ Tile.prototype.setPosition = function(pos)
     this.position_ = pos;
     if (this.mesh_)
     {
-        var current_tile = this.scene_.getTerrain().getTile(Math.floor(pos.x),Math.floor(pos.y));
-        this.mesh_.position.z = 0.5*current_tile.get_height() + this.offset_.z;
+        var terrain = this.scene_.getTerrain();
+        if (terrain)
+        {
+            var current_tile = terrain.getTile(Math.floor(pos.x),Math.floor(pos.y));
+            this.mesh_.position.z = 0.5*current_tile.get_height() + this.offset_.z;
+        }
+        else
+        {
+            this.mesh_.position.z = 0;
+        }
         this.mesh_.position.y = -this.position_.x + this.scene_.terrain_size_.y /2 + this.offset_.y;
         this.mesh_.position.x = this.position_.y - this.scene_.terrain_size_.x /2 + this.offset_.x;
     }
@@ -38,9 +54,9 @@ Tile.prototype.setRotation = function(rotation)
     this.rotation_ = rotation;
     if (this.mesh_)
     {
-        this.mesh_.rotation.x = rotation.x + Math.PI/2,0,0;
-        this.mesh_.rotation.y = rotation.y;
-        this.mesh_.rotation.z = rotation.z;
+        this.mesh_.rotation.x = rotation.x + this.rotation_offset_.x;
+        this.mesh_.rotation.y = rotation.y + this.rotation_offset_.y;
+        this.mesh_.rotation.z = rotation.z + this.rotation_offset_.z;
     }
 }
 
@@ -122,12 +138,16 @@ GameScene.prototype.getTerrain = function()
 GameScene.prototype.addMap = function(terrain_info, terrain_size)
 {
     this.terrain_info_ = terrain_info;
-    var mesh = this.mesh_factory_.createMesh(terrain_info);    
+    var mesh = this.mesh_factory_.createMesh(terrain_info);
     this.three_scene_.add(mesh);
-    this.terrain_size_ = terrain_size;
+    this.setTerrainSize(terrain_size);
 }
 
-/*http://opengameart.org/content/medieval-house-pack*/
+GameScene.prototype.setTerrainSize = function(terrain_size)
+{
+    this.terrain_size_ = terrain_size;    
+}
+
 GameScene.prototype.addInternalJSONModel = function(ret, model_path, model_texture, modifiers, animated)
 {
     var self = this;
@@ -181,6 +201,15 @@ GameScene.prototype.addAnimatedJSONModel = function(name, model_path, model_text
     var new_tile = new AnimatedTile(this, name, block);
     this.static_tiles_.push(new_tile);
     return this.addInternalJSONModel(new_tile, model_path, model_texture, modifiers, true);
+}
+
+GameScene.prototype.addTerrainModel = function(name, terrain_info)
+{
+    var ret = new Tile(this, name, false, new THREE.Vector3(0,0,0));
+    var mesh = this.mesh_factory_.createMesh(terrain_info);
+    this.three_scene_.add(mesh);
+    ret.initialize(mesh);
+    return ret;
 }
 
 GameScene.prototype.getCanWalk = function(position)

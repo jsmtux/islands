@@ -15,22 +15,6 @@ var key_states = {
     P: false
 };
 
-var key_events = {};
-
-function handleKeyDown(event)
-{
-    key_states[key_codes[event.keyCode]] = true;
-    if (key_codes[event.keyCode] !== undefined && key_events[key_codes[event.keyCode]] !== undefined)
-    {
-        key_events[key_codes[event.keyCode]]();
-    }
-}
-
-function handleKeyUp(event)
-{
-    key_states[key_codes[event.keyCode]] = false;
-}
-
 function setup()
 {
     out_div = document.getElementById("out");
@@ -40,8 +24,8 @@ function setup()
     document.body.appendChild(renderer.domElement);
     
     var game = new Game();
-    game.addGameState(new MapGameState(renderer, game), "map");
-    game.setCurrentState("map");
+    game.addGameState(new MapSelectionGameState(renderer, game), "map_selection");
+    game.setCurrentState("map_selection");
     
     animate();
 
@@ -52,6 +36,18 @@ function setup()
     function animate() {
         requestAnimationFrame(animate);
         render();
+    }
+
+
+    function handleKeyDown(event)
+    {
+        key_states[key_codes[event.keyCode]] = true;
+        game.handleKeyDown(key_codes[event.keyCode]);
+    }
+
+    function handleKeyUp(event)
+    {
+        key_states[key_codes[event.keyCode]] = false;
     }
 
     document.onkeydown = handleKeyDown;

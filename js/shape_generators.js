@@ -7,7 +7,13 @@ function NoiseFunction(skip, seed)
         console.log("Seed is: " + seed);
     }
     noise.seed(seed);
+    this.seed_ = seed;
     this.skip_ = skip;
+}
+
+NoiseFunction.prototype.getSeed = function()
+{
+    return this.seed_;
 }
 
 NoiseFunction.prototype.isGround = function(pos)

@@ -1,4 +1,4 @@
-function MapGameState(renderer, game)
+function MapGameState(renderer, game, seed)
 {
     this.prev_bush_;
     this.scene_ = new THREE.Scene();
@@ -6,12 +6,10 @@ function MapGameState(renderer, game)
     this.renderer_ = renderer;
     this.game_ = game;
     
-    this.initTerrain();
+    this.initTerrain(seed);
     
-    var scene_camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 10000);
-    var scene_camera_2 = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 10000);
-    this.map_camera_ = new MapCamera(scene_camera, 300);
-    this.character_camera_ = new CharacterCamera(scene_camera_2, 7);
+    this.map_camera_ = new MapCamera(this.game_.createCamera(), 200);
+    this.character_camera_ = new CharacterCamera(this.game_.createCamera(), 7);
     this.scene_.add(this.map_camera_.getInternal());
     this.scene_.add(this.character_camera_.getInternal());
     this.cur_cam_ = this.character_camera_;
@@ -19,9 +17,10 @@ function MapGameState(renderer, game)
     var unit_a = new Unit(units.grass_monster);
     var unit_d = new Unit(units.tree_monster);
     this.pc_units_ = [unit_a, unit_d];
-    
+        
     var self = this;
-    key_events["P"] = function(){
+    this.key_events_ = {};
+    this.key_events_["P"] = function(){
         if (self.cur_cam_ === self.map_camera_)
         {
             self.cur_cam_ = self.character_camera_;
@@ -36,16 +35,15 @@ function MapGameState(renderer, game)
 MapGameState.prototype = Object.create(GameState.prototype);
 MapGameState.prototype.constructor = MapGameState;
 
-MapGameState.prototype.initTerrain = function()
+MapGameState.prototype.initTerrain = function(seed)
 {
     var t_start = new Date().getTime();
-    var random = new RandGenerator();
 
     var terrain_size = new THREE.Vector2(200, 200);
 /*0.5252345739863813 lake*/
-    var terrainFunction3 = new NoiseFunction(1/*, 0.061479425290599465*/);
+    var terrainFunction3 = new NoiseFunction(1, seed);
     
-    var terrain_constructor = new TerrainConstructor(terrain_size, terrainFunction3);
+    var terrain_constructor = new TerrainConstructor(terrain_size, terrainFunction3, 1);
 
     console.log(diffTime(t_start) + ": Base Terrain created");
     
@@ -149,14 +147,14 @@ MapGameState.prototype.initTerrain = function()
 
 MapGameState.prototype.update = function()
 {
-    this.renderer_.render(this.scene_, this.cur_cam_.getInternal());
-    //mesh.rotation.z += 0.005;
     var pos_look_at;
     if (pc_tile !== undefined)
     {
         pos_look_at = pc_tile.getAbsolutePosition();
     }
     this.cur_cam_.update(pos_look_at);
+    this.renderer_.render(this.scene_, this.cur_cam_.getInternal());
+    //mesh.rotation.z += 0.005;
     var distance = 5;
     //alpha += 0.005;
     if (pc_tile !== undefined)
