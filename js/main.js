@@ -15,6 +15,14 @@ var key_states = {
     P: false
 };
 
+var mouse_buttons = {
+    0: "LEFT",
+    1: "MIDDLE",
+    2: "RIGHT"
+}
+
+var mouse_state = new THREE.Vector2(0,0);
+
 function setup()
 {
     out_div = document.getElementById("out");
@@ -38,7 +46,6 @@ function setup()
         render();
     }
 
-
     function handleKeyDown(event)
     {
         key_states[key_codes[event.keyCode]] = true;
@@ -50,8 +57,21 @@ function setup()
         key_states[key_codes[event.keyCode]] = false;
     }
 
+    function handleMouseMove( event )
+    {
+        mouse_state.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+        mouse_state.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+    }
+    
+    function handleMouseDown(event)
+    {
+        game.handleMouseDown(mouse_buttons[event.button]);
+    }
+
     document.onkeydown = handleKeyDown;
     document.onkeyup = handleKeyUp;
+    document.onmousemove = handleMouseMove;
+    document.onmousedown = handleMouseDown;
 }
 
 function diffTime(ini)

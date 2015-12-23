@@ -1,10 +1,7 @@
 function MapGameState(renderer, game, seed)
 {
+    THREEGameState.call(this, renderer, game);
     this.prev_bush_;
-    this.scene_ = new THREE.Scene();
-    this.game_scene_ = new GameScene(this.scene_);
-    this.renderer_ = renderer;
-    this.game_ = game;
     
     this.initTerrain(seed);
     
@@ -12,14 +9,14 @@ function MapGameState(renderer, game, seed)
     this.character_camera_ = new CharacterCamera(this.game_.createCamera(), 7);
     this.scene_.add(this.map_camera_.getInternal());
     this.scene_.add(this.character_camera_.getInternal());
-    this.cur_cam_ = this.character_camera_;
+    this.cur_cam_ = this.map_camera_;
     
     var unit_a = new Unit(units.grass_monster);
     var unit_d = new Unit(units.tree_monster);
     this.pc_units_ = [unit_a, unit_d];
         
     var self = this;
-    this.key_events_ = {};
+
     this.key_events_["P"] = function(){
         if (self.cur_cam_ === self.map_camera_)
         {
@@ -32,7 +29,7 @@ function MapGameState(renderer, game, seed)
     };
 }
 
-MapGameState.prototype = Object.create(GameState.prototype);
+MapGameState.prototype = Object.create(THREEGameState.prototype);
 MapGameState.prototype.constructor = MapGameState;
 
 MapGameState.prototype.initTerrain = function(seed)
@@ -147,13 +144,13 @@ MapGameState.prototype.initTerrain = function(seed)
 
 MapGameState.prototype.update = function()
 {
+    THREEGameState.prototype.update.call(this);
     var pos_look_at;
     if (pc_tile !== undefined)
     {
         pos_look_at = pc_tile.getAbsolutePosition();
     }
     this.cur_cam_.update(pos_look_at);
-    this.renderer_.render(this.scene_, this.cur_cam_.getInternal());
     //mesh.rotation.z += 0.005;
     var distance = 5;
     //alpha += 0.005;

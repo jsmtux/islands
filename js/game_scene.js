@@ -90,6 +90,11 @@ Tile.prototype.get_name = function()
     return this.name_;
 }
 
+Tile.prototype.get_mesh = function()
+{
+    return this.mesh_;
+}
+
 function AnimatedTile(scene, block)
 {
     Tile.call(this, scene, block);
@@ -206,9 +211,11 @@ GameScene.prototype.addAnimatedJSONModel = function(name, model_path, model_text
 GameScene.prototype.addTerrainModel = function(name, terrain_info)
 {
     var ret = new Tile(this, name, false, new THREE.Vector3(0,0,0));
+
     var mesh = this.mesh_factory_.createMesh(terrain_info);
     this.three_scene_.add(mesh);
     ret.initialize(mesh);
+    this.static_tiles_.push(ret);
     return ret;
 }
 
@@ -246,4 +253,23 @@ GameScene.prototype.getCollidingTiles = function(position)
         }
     }
     return ret;
+}
+
+GameScene.prototype.getTilesForMeshes = function(meshes)
+{
+    var ret = [];
+    
+    for (var i = 0; i < this.static_tiles_.length; i++)
+    {
+        for (var j = 0; j < meshes.length; j++)
+        {
+            if (this.static_tiles_[i].get_mesh() === meshes[j].object)
+            {
+                ret.push(this.static_tiles_[i]);
+                break;
+            }
+        }
+    }
+    return ret;
+    
 }
