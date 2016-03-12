@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset=utf-8>
+        <title>My first Three.js app</title>
+        <link href="skin.css" rel="stylesheet" type="text/css">
+        <style>
+            body { margin: 0; }
+            canvas {
+                width: 100%;
+                height: 100%;
+                position: absolute;
+                top: 0;
+                left: 0;
+                z-index: -2;
+            }
+        </style>
+                
+                <script id="fragment_shh" type="x-shader/x-fragment">
+                    #ifdef GL_ES
+                    precision highp float;
+                    #endif
+
+                    uniform sampler2D tOne;
+                    uniform sampler2D tSec;
+
+                    varying vec2 vUv;
+
+                    void main(void)
+                    {
+                        vec3 c;
+                        vec4 Ca = texture2D(tOne, vUv);
+                        vec4 Cb = texture2D(tSec, vUv);
+                        c = Ca.rgb * Ca.a + Cb.rgb * Cb.a * (1.0 - Ca.a);
+                        gl_FragColor= vec4(c, 1.0);
+                    }
+                </script>
+                <script id="vertex_shh" type="x-shader/x-vertex">
+                    varying vec2 vUv;
+            
+                    void main()
+                    {
+                        vUv = uv;
+                        vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
+                        gl_Position = projectionMatrix * mvPosition;
+                    }
+                </script>
+                
+        <script src="js/battle/ui.js"></script>
+	<script src="js/battle/unit_definition.js"></script>
+	<script src="js/battle/unit.js"></script>
+	<script src="js/battle/player.js"></script>
+	<script src="js/battle/unit_action.js"></script>
+	<script src="js/battle/battle_definitions.js"></script>
+	<script src="js/battle/battle.js"></script>
+	<script src="js/battle/setup.js"></script>
+
+        <script src="js/three.js"></script>
+        <script src="js/rand.js"></script>
+        <script src="js/perlin.js"></script>
+        <script src="js/shape_generators.js"></script>
+        <script src="js/algorithms.js"></script>
+        <script src="js/terrain_constructor.js"></script>
+        <script src="js/terrain.js"></script>
+        <script src="js/text_output.js"></script>
+        <script src="js/material_manager.js"></script>
+        <script src="js/mesh_factory.js"></script>
+        <script src="js/game_scene.js"></script>
+        <script src="js/camera.js"></script>
+        <script src="js/game.js"></script>
+        <script src="js/map_game_state.js"></script>
+        <script src="js/map_selection_game_state.js"></script>
+        <script src="js/main.js"></script>
+        
+    </head>
+    <body onload="setup()">
+        <div id="out">
+        </div>
+    </body>
+</html>

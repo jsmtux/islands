@@ -1,0 +1,60 @@
+html {
+    font-family: Tahoma, Geneva, sans-serif;
+    font-size: 150%;
+    -moz-user-select: none; 
+    -khtml-user-select: none; 
+    -webkit-user-select: none; 
+    -o-user-select: none; 
+}
+div, span {
+}
+p {
+    margin: 0px;
+    padding: 0px;
+}
+img {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+.window {
+    border-image: url("html_images/panel_brown.png") 20% fill repeat;
+    border-width: 20px;
+}
+.panel-element {
+    border-image: url("html_images/panelInset_beige.png") 20% fill repeat;
+    border-width: 20px;
+}
+.row_element {
+    border-spacing: 10px;
+    border-collapse: separate;
+}
+.button {
+    border-image: url("html_images/buttonSquare_blue.png") 20% fill repeat;
+    border-width: 10px;
+}
+.button:active {
+    border-image: url("html_images/buttonSquare_blue_pressed.png") 20% fill repeat;
+    border-width: 10px;
+}
+.progress-back {
+    border-image: url("html_images/barBack_horizontalFull.png")  50% 25% 49% 25% fill repeat;
+    border-width: 10px;
+    padding: 0px;
+    position:relative;
+    top: 0px;
+    left: 0px;
+    width:95%;
+}
+.progress-fill{
+    border-image: url("html_images/barRed_horizontalFull.png") 50% 25% 49% 25% fill repeat;
+    border-width: 10px;
+    z-index:10;
+    position:relative;
+    top: -20px;
+    left: 0px;
+    width: 20%;
+}
+.clear-div{
+    clear:both;
+}
